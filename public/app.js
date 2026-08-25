@@ -123,24 +123,24 @@ var SORT_PREFS = {};
 var DEFAULT_SORT = 'price-desc';
 var CURRENT_TITLE_FILTER = '';
 
+// Groups titles that only differ by case/whitespace (e.g. "X-Men" vs
+// "X-men") under one dropdown entry, keyed by their normalized form so
+// selecting it matches every casing variant. The displayed label is
+// whichever casing was seen first.
 function distinctTitles(wantList) {
-  var seen = {}, arr = [];
+  var seen = {}, order = [];
   wantList.forEach(function (b) {
-    if (!seen[b.title]) { seen[b.title] = true; arr.push(b.title); }
+    var key = normTitle(b.title);
+    if (!seen[key]) { seen[key] = b.title; order.push(key); }
   });
-  arr.sort(function (a, b) {
-    var na = normTitle(a), nb = normTitle(b);
-    if (na < nb) return -1;
-    if (na > nb) return 1;
-    return 0;
-  });
-  return arr;
+  order.sort();
+  return order.map(function (key) { return { key: key, label: seen[key] }; });
 }
 
 function applyTitleFilter() {
   var cards = document.querySelectorAll('.book-card');
   for (var i = 0; i < cards.length; i++) {
-    var t = cards[i].getAttribute('data-title');
+    var t = normTitle(cards[i].getAttribute('data-title'));
     cards[i].style.display = (!CURRENT_TITLE_FILTER || t === CURRENT_TITLE_FILTER) ? '' : 'none';
   }
 }
@@ -361,7 +361,7 @@ function renderApp(state) {
     '<div class="title-filter-wrap"><label for="title-filter" class="title-filter-label">Filter by title</label>' +
     '<span class="sort-wrap"><select id="title-filter" class="sort-select" aria-label="Filter by comic title"><option value="">All titles</option>' +
     distinctTitles(state.wantList).map(function (t) {
-      return '<option value="' + esc(t) + '"' + (CURRENT_TITLE_FILTER === t ? ' selected' : '') + '>' + esc(t) + '</option>';
+      return '<option value="' + esc(t.key) + '"' + (CURRENT_TITLE_FILTER === t.key ? ' selected' : '') + '>' + esc(t.label) + '</option>';
     }).join('') +
     '</select></span></div></div>';
   var sortedWantList = state.wantList.slice().sort(compareBooksByTitle);
@@ -446,7 +446,7 @@ function updateJumpNav(direction) {
 
   var currentCard = idx >= 0 ? cards[idx] : null;
   var targetCard = cards[targetIdx];
-  var sameTitle = currentCard && currentCard.getAttribute('data-title') === targetCard.getAttribute('data-title');
+  var sameTitle = currentCard && normTitle(currentCard.getAttribute('data-title')) === normTitle(targetCard.getAttribute('data-title'));
   var issueEl = targetCard.querySelector('.book-issue');
   var label = (direction === 'down' ? '↓ Next' : '↑ Previous') + (sameTitle ? ' issue: ' : ': ') +
     targetCard.getAttribute('data-title') + ' ' + (issueEl ? issueEl.textContent : '');
@@ -569,7 +569,7 @@ function submitNewBook(payload, btn, idleLabel, busyLabel) {
 
   return apiSend('/api/wantlist', 'POST', payload)
     .then(function (newState) {
-      if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== payload.title) CURRENT_TITLE_FILTER = '';
+      if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== normTitle(payload.title)) CURRENT_TITLE_FILTER = '';
       renderApp(newState);
       if (newState.addedBookId) scrollToBook(newState.addedBookId);
     })
