@@ -73,8 +73,8 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
   }
 }
 
-async function buildState({ refreshBookId = null } = {}) {
-  const wantList = await store.readWantList(state.defaultWantList);
+async function buildState({ testerId, refreshBookId = null }) {
+  const wantList = await store.readWantList(testerId);
 
   const listingsByBook = await mapWithConcurrency(wantList, SEARCH_CONCURRENCY, (book) =>
     getListingsForBook(book, { forceFresh: book.id === refreshBookId })
@@ -93,7 +93,7 @@ async function buildState({ refreshBookId = null } = {}) {
 
 router.get('/state', async (req, res, next) => {
   try {
-    res.json(await buildState());
+    res.json(await buildState({ testerId: req.testerId }));
   } catch (err) {
     next(err);
   }
@@ -109,7 +109,7 @@ router.post('/wantlist', async (req, res, next) => {
       return res.status(400).json({ error: 'title and issue are required.' });
     }
 
-    const wantList = await store.readWantList(state.defaultWantList);
+    const wantList = await store.readWantList(req.testerId);
     if (wantList.length >= state.BOOK_CAP) {
       return res.status(400).json({
         error: `Watch list is at its ${state.BOOK_CAP}-book cap — remove one before adding another.`,
@@ -126,9 +126,9 @@ router.post('/wantlist', async (req, res, next) => {
     };
 
     wantList.push(newBook);
-    await store.writeWantList(wantList);
+    await store.writeWantList(req.testerId, wantList);
 
-    res.status(201).json(await buildState({ refreshBookId: newBook.id }));
+    res.status(201).json(await buildState({ testerId: req.testerId, refreshBookId: newBook.id }));
   } catch (err) {
     next(err);
   }
@@ -136,10 +136,10 @@ router.post('/wantlist', async (req, res, next) => {
 
 router.delete('/wantlist/:id', async (req, res, next) => {
   try {
-    const wantList = await store.readWantList(state.defaultWantList);
+    const wantList = await store.readWantList(req.testerId);
     const remaining = wantList.filter((b) => b.id !== req.params.id);
-    await store.writeWantList(remaining);
-    res.json(await buildState());
+    await store.writeWantList(req.testerId, remaining);
+    res.json(await buildState({ testerId: req.testerId }));
   } catch (err) {
     next(err);
   }

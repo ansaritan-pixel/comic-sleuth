@@ -1,8 +1,6 @@
-// Persists the want list as a single JSON blob in Upstash's Redis REST API
-// — survives redeploys/restarts, unlike the local-file store. Opt-in: only
-// used when both env vars below are set.
-
-const REDIS_KEY = 'comic-sleuth:wantlist';
+// Persists each tester's want list as its own JSON blob in Upstash's Redis
+// REST API — survives redeploys/restarts, unlike the local-file store.
+// Opt-in: only used when both env vars below are set.
 
 const { cleanEnvValue } = require('../envUtil');
 
@@ -42,18 +40,28 @@ async function command(args) {
   return body.result;
 }
 
-async function readWantList(getDefaultWantList) {
-  const raw = await command(['GET', REDIS_KEY]);
-  if (raw === null || raw === undefined) {
-    const seeded = getDefaultWantList();
-    await writeWantList(seeded);
-    return seeded;
-  }
-  return JSON.parse(raw);
+function keyFor(token) {
+  return `comic-sleuth:wantlist:${token}`;
 }
 
-async function writeWantList(wantList) {
-  await command(['SET', REDIS_KEY, JSON.stringify(wantList)]);
+// The single pre-multi-tenant key this app used before per-tester storage
+// existed. Only ever consulted once, to seed the owner's token.
+const LEGACY_KEY = 'comic-sleuth:wantlist';
+
+// Returns undefined if nothing has ever been stored for this token yet —
+// distinct from an empty array, which means "stored, and empty."
+async function read(token) {
+  const raw = await command(['GET', keyFor(token)]);
+  return raw === null || raw === undefined ? undefined : JSON.parse(raw);
 }
 
-module.exports = { isConfigured, readWantList, writeWantList };
+async function readLegacy() {
+  const raw = await command(['GET', LEGACY_KEY]);
+  return raw === null || raw === undefined ? undefined : JSON.parse(raw);
+}
+
+async function write(token, wantList) {
+  await command(['SET', keyFor(token), JSON.stringify(wantList)]);
+}
+
+module.exports = { isConfigured, read, readLegacy, write };

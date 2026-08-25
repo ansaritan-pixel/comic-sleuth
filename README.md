@@ -96,15 +96,48 @@ separate cover-art source in this build.
 
 ## Want-list storage
 
-- **Local development**: the want list is stored in `server/data/wantlist.json`
-  on disk. No setup needed — this is the default.
+- **Local development**: each tester's want list is stored as its own file
+  in `server/data/`. No setup needed — this is the default.
 - **Hosted**: most hosting platforms' free/cheap tiers use ephemeral
-  filesystems, so that file would silently reset to the seeded books on
-  every redeploy or restart. Set `UPSTASH_REDIS_REST_URL` and
-  `UPSTASH_REDIS_REST_TOKEN` (a free database at [upstash.com](https://upstash.com))
-  in your host's environment variables and the want list switches to Upstash
-  automatically (`server/store/index.js` picks the backend — nothing else in
-  the app knows or cares which one is active). Leave them unset locally.
+  filesystems, so those files would silently reset on every redeploy or
+  restart. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (a
+  free database at [upstash.com](https://upstash.com)) in your host's
+  environment variables and want-list storage switches to Upstash
+  automatically (`server/store/index.js` picks the backend — nothing else
+  in the app knows or cares which one is active). Leave them unset locally.
+
+## Multiple users (beta testers)
+
+Comic Sleuth supports separate, isolated want lists per visitor, identified
+by a browser cookie rather than a login:
+
+- **A random visitor** to the bare site URL, with no invite link, is
+  automatically given their own brand-new, empty want list on first visit
+  (`server/testerMiddleware.js`) — never the owner's real data.
+- **An invite link** — `https://yourdomain.com/t/<token>` — sets a specific,
+  pre-chosen token instead of a random one (`GET /t/:token` in
+  `server/index.js`). Generate a token for each beta tester with:
+  ```
+  node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+  ```
+  and send that person their own `/t/<token>` link. There's no
+  pre-registration step — the first visit to a valid-looking token just
+  starts that token's list empty, same as an anonymous visitor, except now
+  it's a link you know you handed to a specific person.
+- **The owner's own list** — the original single-user data this app had
+  before multi-tenancy — is reachable the same way, via a token you put in
+  `OWNER_TESTER_TOKEN` (see `.env.example`). The first visit to
+  `/t/<OWNER_TESTER_TOKEN>` migrates that original data onto the token
+  one time (`server/store/index.js`); after that it behaves like any other
+  tester's list. Without `OWNER_TESTER_TOKEN` set, that original data just
+  sits unused — nobody can reach it, including the owner, until it's set.
+- Each visitor's identity persists for a year via an `HttpOnly` cookie —
+  they don't need to revisit their `/t/<token>` link on later visits.
+- eBay search results stay cached and shared globally across everyone
+  (the same "Amazing Spider-Man #1 1963" search returns the same eBay
+  listings no matter who's asking) — only the want list itself is
+  per-tester. The "Source health & request log" debug panel is also
+  shared/global across all visitors, not per-tester.
 
 ## Not yet implemented
 
