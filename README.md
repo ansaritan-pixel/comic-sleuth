@@ -36,11 +36,6 @@ official Browse API — no web scraping, no browser automation.
    **`.env` is gitignored and will never be committed.** Nobody but you
    should ever see the values in it — don't paste them into chat, issues, or
    commit messages.
-
-   Optionally, also set `COMICVINE_API_KEY` (free, from
-   [comicvine.gamespot.com/api](https://comicvine.gamespot.com/api/)) to get
-   real cover art on want-list books. Not required — without it, book cards
-   just fall back to a photo from an eBay listing, or a placeholder.
 3. Start the server:
    ```
    npm start
@@ -71,7 +66,9 @@ is the only place that reads these variables.
   never leave the server process.
 - **Search**: for each want-list book, the server calls eBay's
   `item_summary/search` endpoint (`server/connectors/ebay/client.js`) with a
-  query built from the title and issue number.
+  query built from the title, issue number, and — when a real 4-digit year
+  was entered — the publication year, to reduce mismatches against
+  reprints or other volumes that happen to share a title and issue number.
 - **Normalization**: results are mapped to Comic Sleuth's listing shape
   (`server/connectors/ebay/normalize.js`) — comic title, issue, listing
   title, grading company, grade, price, currency, image, item ID, listing
@@ -79,26 +76,21 @@ is the only place that reads these variables.
   listings, so nothing here is ever labeled as sold or used as fair-market
   value.
 - **Caching**: search results are cached in memory for 15 minutes per
-  title+issue, so reloading the page or adding a duplicate search doesn't
-  make redundant eBay calls. See the "Source health & request log" panel at
-  the bottom of the page for a live view of cache hits vs. live calls.
+  title+issue+year, so reloading the page or adding a duplicate search
+  doesn't make redundant eBay calls. See the "Source health & request log"
+  panel at the bottom of the page for a live view of cache hits vs. live
+  calls.
 - **Errors, rate limits, and outages**: a failed eBay call never falls back
   to scraping. It's logged and surfaced as a status on the "eBay" source
   card (green/yellow/red) with the reason, and the affected book simply
   shows its most recent cached results (or none) until the next successful
   search.
 
-## Cover art (Comic Vine)
+## Cover art
 
-If `COMICVINE_API_KEY` is set, each want-list book gets a one-time lookup
-against Comic Vine's `/search/` endpoint (`server/connectors/comicvine/`),
-matched on issue number, then disambiguated by title and year when a title
-has multiple volumes/reprints. The result (a match, or a confirmed no-match)
-is persisted on the book so it's never looked up twice — well within Comic
-Vine's rate limit regardless of want-list size. A transient failure (network
-blip, rate limit) is *not* persisted, so it's retried on a later page load
-rather than permanently giving up. If a book has no cover art, the UI falls
-back to a photo from its highest-priced eBay listing, then to a placeholder.
+Book cards show a photo from the book's highest-priced eBay listing (falling
+back to any listing with a photo, then a placeholder if there are no
+listings yet). There's no separate cover-art source in this build.
 
 ## Not yet implemented
 

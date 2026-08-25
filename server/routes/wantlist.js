@@ -1,6 +1,5 @@
 const express = require('express');
 const ebay = require('../connectors/ebay');
-const comicVine = require('../connectors/comicvine');
 const { TTLCache } = require('../cache');
 const { mapWithConcurrency } = require('../concurrency');
 const requestLog = require('../requestLog');
@@ -17,7 +16,9 @@ const searchCache = new TTLCache(SEARCH_CACHE_TTL_MS);
 const SEARCH_CONCURRENCY = 8;
 
 function cacheKey(book) {
-  return `${book.title}`.trim().toLowerCase() + '|' + `${book.issue}`.trim().toLowerCase();
+  return [book.title, book.issue, book.year]
+    .map((v) => String(v || '').trim().toLowerCase())
+    .join('|');
 }
 
 function slugify(s) {
@@ -71,46 +72,8 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
   }
 }
 
-// Fills in cover art for any book that hasn't had a Comic Vine lookup yet.
-// Runs at most once per book, ever — a successful lookup (match or
-// confirmed no-match) is persisted so it's never repeated; a transient
-// failure leaves the book unmarked so a later call retries it.
-async function backfillCoverImages(wantList) {
-  if (!comicVine.isConfigured()) return false;
-
-  const needsCover = wantList.filter((b) => !b.coverLookupDone);
-  if (!needsCover.length) return false;
-
-  await mapWithConcurrency(needsCover, SEARCH_CONCURRENCY, async (book) => {
-    const comicLabel = `${book.title} #${book.issue}`;
-    try {
-      book.coverImage = await comicVine.findCoverImage(book);
-      book.coverLookupDone = true;
-      requestLog.addEntry({
-        domain: 'Comic Vine',
-        comic: comicLabel,
-        result: book.coverImage ? 'found' : 'empty',
-        cacheHit: false,
-      });
-    } catch (err) {
-      // Leave coverLookupDone unset so this book is retried next time.
-      requestLog.addEntry({
-        domain: 'Comic Vine',
-        comic: comicLabel,
-        result: err.code === 'COMICVINE_RATE_LIMITED' ? 'rate_limited' : 'error',
-        cacheHit: false,
-      });
-    }
-  });
-  return true;
-}
-
 async function buildState({ refreshBookId = null } = {}) {
   const wantList = state.readWantList();
-
-  if (await backfillCoverImages(wantList)) {
-    state.writeWantList(wantList);
-  }
 
   const listingsByBook = await mapWithConcurrency(wantList, SEARCH_CONCURRENCY, (book) =>
     getListingsForBook(book, { forceFresh: book.id === refreshBookId })

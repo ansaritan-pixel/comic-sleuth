@@ -8,8 +8,15 @@ const { normalizeEbayItem } = require('./normalize');
 const { loadConfig } = require('./config');
 
 function buildQuery(book) {
-  const parts = [book.title, `#${book.issue}`, 'comic'].filter(Boolean);
-  return parts.join(' ');
+  const parts = [book.title, `#${book.issue}`];
+  // Include the publication year when it's a real 4-digit year (the
+  // want-list form stores "—" as a placeholder when it's left blank), so
+  // the search is disambiguated from same-title/same-issue reprints and
+  // different volumes rather than only relying on eBay's default ranking.
+  const year = String(book.year || '').trim();
+  if (/^\d{4}$/.test(year)) parts.push(year);
+  parts.push('comic');
+  return parts.filter(Boolean).join(' ');
 }
 
 async function searchForBook(book) {
