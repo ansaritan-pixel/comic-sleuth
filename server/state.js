@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DATA_FILE = path.join(__dirname, 'data', 'wantlist.json');
-const BOOK_CAP = 30;
+const BOOK_CAP = 100;
 
 const NOT_YET_IMPLEMENTED_SOURCES = [
   'MyComicShop',

@@ -1,6 +1,7 @@
 const express = require('express');
 const ebay = require('../connectors/ebay');
 const { TTLCache } = require('../cache');
+const { mapWithConcurrency } = require('../concurrency');
 const requestLog = require('../requestLog');
 const state = require('../state');
 
@@ -8,6 +9,11 @@ const router = express.Router();
 
 const SEARCH_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const searchCache = new TTLCache(SEARCH_CACHE_TTL_MS);
+
+// Caps how many eBay searches run at once when refreshing the whole want
+// list, so a large list doesn't fire a burst of simultaneous calls that
+// trips eBay's per-second rate limiting.
+const SEARCH_CONCURRENCY = 8;
 
 function cacheKey(book) {
   return `${book.title}`.trim().toLowerCase() + '|' + `${book.issue}`.trim().toLowerCase();
@@ -66,8 +72,8 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
 
 async function buildState({ refreshBookId = null } = {}) {
   const wantList = state.readWantList();
-  const listingsByBook = await Promise.all(
-    wantList.map((book) => getListingsForBook(book, { forceFresh: book.id === refreshBookId }))
+  const listingsByBook = await mapWithConcurrency(wantList, SEARCH_CONCURRENCY, (book) =>
+    getListingsForBook(book, { forceFresh: book.id === refreshBookId })
   );
   const listings = listingsByBook.flat();
 
