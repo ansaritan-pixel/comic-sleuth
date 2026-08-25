@@ -410,16 +410,6 @@ function scrollToCard(bookId) {
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function scrollToBook(bookId) {
-  scrollToCard(bookId);
-  showBackToTop();
-}
-
-function showBackToTop() {
-  var btn = document.getElementById('back-to-top');
-  if (btn) btn.classList.add('show');
-}
-
 function setupBackToTop() {
   var btn = document.getElementById('back-to-top');
   if (!btn) return;
@@ -427,8 +417,10 @@ function setupBackToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     btn.classList.remove('show');
   });
+  // Available on any scroll, up or down, once far enough from the top —
+  // not just right after adding a book.
   window.addEventListener('scroll', function () {
-    if (window.scrollY < 200) btn.classList.remove('show');
+    btn.classList.toggle('show', window.scrollY >= 200);
   }, { passive: true });
 }
 
@@ -600,7 +592,7 @@ function submitNewBook(payload, btn, idleLabel, busyLabel) {
     .then(function (newState) {
       if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== normTitle(payload.title)) CURRENT_TITLE_FILTER = '';
       renderApp(newState);
-      if (newState.addedBookId) scrollToBook(newState.addedBookId);
+      if (newState.addedBookId) scrollToCard(newState.addedBookId);
     })
     .catch(function (err) {
       btn.disabled = false;
