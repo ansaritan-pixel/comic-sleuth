@@ -319,10 +319,10 @@ function renderApp(state) {
 
   html += '<section class="quicksearch">' +
     '<form id="quick-search-form">' +
-      '<label for="quick-search-input">Let’s Sleuth!</label>' +
+      '<label for="quick-search-input">Give me a Clue?</label>' +
       '<div class="quicksearch-row">' +
         '<input id="quick-search-input" type="text" placeholder="e.g. Amazing Spider-Man #1 1963" autocomplete="off">' +
-        '<button type="submit" id="quick-search-btn">Search</button>' +
+        '<button type="submit" id="quick-search-btn">Let’s Sleuth!</button>' +
       '</div>' +
     '</form>' +
   '</section>';
@@ -334,7 +334,7 @@ function renderApp(state) {
     '<div class="field"><label for="f-issue">Issue #</label><input id="f-issue" name="issue" placeholder="39" required></div>' +
     '<div class="field"><label for="f-pub">Publisher</label><input id="f-pub" name="publisher" placeholder="Marvel"></div>' +
     '<div class="field"><label for="f-year">Year</label><input id="f-year" name="year" placeholder="1963"></div>' +
-    '<button type="submit" class="add-submit" id="add-submit-btn">Let’s Sleuth!</button>' +
+    '<button type="submit" class="add-submit" id="add-submit-btn">Add to Watch List</button>' +
   '</form>';
   html += '<p class="addbook-hint">New books are searched on eBay immediately after you add them. The list is capped at ' + (state.bookCap || 30) + ' books to keep requests light.</p>';
   html += '</section>';
@@ -473,7 +473,7 @@ function wireEvents(state) {
       if (!title || !issue) return;
 
       var btn = document.getElementById('add-submit-btn');
-      submitNewBook({ title: title, issue: issue, publisher: publisher, year: year }, btn, 'Let’s Sleuth!', 'Searching eBay…').catch(function () {});
+      submitNewBook({ title: title, issue: issue, publisher: publisher, year: year }, btn, 'Add to Watch List', 'Searching eBay…').catch(function () {});
     });
   }
 
@@ -492,7 +492,7 @@ function wireEvents(state) {
 
       submitNewBook(
         { title: parsed.title, issue: parsed.issue, publisher: '', year: parsed.year || '' },
-        btn, 'Search', 'Searching eBay…'
+        btn, 'Let’s Sleuth!', 'Searching eBay…'
       ).then(function () { input.value = ''; }).catch(function () {});
     });
   }
