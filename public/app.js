@@ -173,18 +173,6 @@ function sortListings(listings, sortKey) {
       if (pb === null) return -1;
       return pb - pa;
     });
-  } else if (sortKey === 'date-desc') {
-    arr.sort(function (a, b) {
-      var da = a.foundDate || '', db = b.foundDate || '';
-      if (da === db) return 0;
-      return da < db ? 1 : -1;
-    });
-  } else if (sortKey === 'date-asc') {
-    arr.sort(function (a, b) {
-      var da = a.foundDate || '', db = b.foundDate || '';
-      if (da === db) return 0;
-      return da < db ? -1 : 1;
-    });
   } else {
     arr.sort(function (a, b) {
       var pa = priceVal(a), pb = priceVal(b);
@@ -234,9 +222,7 @@ function renderListingRows(listings, sortKey) {
 function renderSortControl(book, sortKey) {
   var options = [
     ['price-desc', 'Price: High to Low'],
-    ['price-asc', 'Price: Low to High'],
-    ['date-desc', 'Date: New to Old'],
-    ['date-asc', 'Date: Old to New']
+    ['price-asc', 'Price: Low to High']
   ];
   var optionsHtml = options.map(function (o) {
     return '<option value="' + o[0] + '"' + (sortKey === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
