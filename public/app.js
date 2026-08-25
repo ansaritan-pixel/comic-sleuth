@@ -474,7 +474,6 @@ function submitNewBook(payload, btn, idleLabel, busyLabel) {
     .then(function (newState) {
       if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== payload.title) CURRENT_TITLE_FILTER = '';
       renderApp(newState);
-      showToast('Added ' + payload.title + ' #' + payload.issue + ' — eBay searched.');
       if (newState.addedBookId) scrollToBook(newState.addedBookId);
     })
     .catch(function (err) {
