@@ -2,6 +2,8 @@
 // a matter of setting EBAY_ENV=production and filling in the production
 // credential vars — nothing in auth.js, client.js, or normalize.js changes.
 
+const { cleanEnvValue } = require('../../envUtil');
+
 const ENVIRONMENTS = {
   sandbox: {
     tokenUrl: 'https://api.sandbox.ebay.com/identity/v1/oauth2/token',
@@ -31,12 +33,12 @@ function loadConfig(env = process.env) {
     env: name,
     tokenUrl: target.tokenUrl,
     apiBase: target.apiBase,
-    clientId: env[target.clientIdVar] || '',
-    clientSecret: env[target.clientSecretVar] || '',
+    clientId: cleanEnvValue(env[target.clientIdVar]),
+    clientSecret: cleanEnvValue(env[target.clientSecretVar]),
     clientIdVar: target.clientIdVar,
     clientSecretVar: target.clientSecretVar,
     scope: 'https://api.ebay.com/oauth/api_scope',
-    marketplaceId: env.EBAY_MARKETPLACE_ID || 'EBAY_US',
+    marketplaceId: cleanEnvValue(env.EBAY_MARKETPLACE_ID) || 'EBAY_US',
   };
 }
 

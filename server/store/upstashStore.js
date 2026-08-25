@@ -4,10 +4,12 @@
 
 const REDIS_KEY = 'comic-sleuth:wantlist';
 
+const { cleanEnvValue } = require('../envUtil');
+
 function loadConfig(env = process.env) {
   return {
-    url: env.UPSTASH_REDIS_REST_URL || '',
-    token: env.UPSTASH_REDIS_REST_TOKEN || '',
+    url: cleanEnvValue(env.UPSTASH_REDIS_REST_URL),
+    token: cleanEnvValue(env.UPSTASH_REDIS_REST_TOKEN),
   };
 }
 
