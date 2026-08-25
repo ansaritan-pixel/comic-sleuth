@@ -378,7 +378,7 @@ function renderApp(state) {
   html += sortedWantList.map(function (b) { return renderBookCard(b, state); }).join('');
   html += '</section>';
 
-  html += '<footer>eBay listings are fetched live via eBay’s official Browse API using OAuth client-credentials — no web scraping, ever, for eBay or as a fallback if the API is unavailable. Prices shown are current asking prices, not completed sales. Other sources listed above (MyComicShop, Reece’s Rare Comics, Superworld Comics, Dale Roberts Comics) are shown for context but are not yet implemented as live connectors in this build. Prices and availability change constantly; always confirm on eBay before bidding or buying.</footer>';
+  html += '<footer>Prices and availability change constantly; always confirm on eBay before bidding or buying.</footer>';
 
   document.getElementById('app').innerHTML = html;
   wireEvents(state);
