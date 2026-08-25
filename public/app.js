@@ -336,7 +336,8 @@ function renderApp(state) {
       return '<option value="' + esc(t) + '"' + (CURRENT_TITLE_FILTER === t ? ' selected' : '') + '>' + esc(t) + '</option>';
     }).join('') +
     '</select></span></div></div>';
-  html += state.wantList.map(function (b) { return renderBookCard(b, state); }).join('');
+  var sortedWantList = state.wantList.slice().sort(compareBooksByTitle);
+  html += sortedWantList.map(function (b) { return renderBookCard(b, state); }).join('');
   html += '</section>';
 
   html += '<footer>eBay listings are fetched live via eBay’s official Browse API using OAuth client-credentials — no web scraping, ever, for eBay or as a fallback if the API is unavailable. Prices shown are current asking prices, not completed sales. Other sources listed above (MyComicShop, Reece’s Rare Comics, Superworld Comics, Dale Roberts Comics) are shown for context but are not yet implemented as live connectors in this build. Prices and availability change constantly; always confirm on eBay before bidding or buying.</footer>';
@@ -355,6 +356,23 @@ function showToast(msg) {
 
 function normTitle(t) {
   return String(t == null ? '' : t).trim().toLowerCase();
+}
+
+function issueSortValue(issue) {
+  var s = String(issue == null ? '' : issue).trim();
+  var m = s.match(/-?\d+(\.\d+)?/);
+  if (m) return parseFloat(m[0]);
+  return Infinity;
+}
+
+function compareBooksByTitle(a, b) {
+  var ta = normTitle(a.title), tb = normTitle(b.title);
+  if (ta < tb) return -1;
+  if (ta > tb) return 1;
+  var ia = issueSortValue(a.issue), ib = issueSortValue(b.issue);
+  if (ia < ib) return -1;
+  if (ia > ib) return 1;
+  return 0;
 }
 
 async function apiGet(url) {
