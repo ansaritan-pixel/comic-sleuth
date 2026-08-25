@@ -9,7 +9,13 @@ const { OWNER_TOKEN } = require('../ownerToken');
 
 const router = express.Router();
 
-const SEARCH_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+// Short on purpose: the goal is "fresh enough to actually go buy," not a
+// bandwidth-saving cache. 60s is a nominal safety margin against a burst of
+// duplicate calls with zero benefit (an accidental double-load, a stray
+// auto-refreshing tab) rather than a real staleness tolerance — in normal
+// use nobody reloads faster than that, so this is effectively "live on
+// every visit" without leaving the app defenseless against a reload storm.
+const SEARCH_CACHE_TTL_MS = 60 * 1000;
 const searchCache = new TTLCache(SEARCH_CACHE_TTL_MS);
 
 // Caps how many eBay searches run at once when refreshing the whole want

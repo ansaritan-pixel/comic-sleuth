@@ -75,11 +75,12 @@ is the only place that reads these variables.
   URL, and marketplace. eBay's Browse API only returns active/asking-price
   listings, so nothing here is ever labeled as sold or used as fair-market
   value.
-- **Caching**: search results are cached in memory for 15 minutes per
-  title+issue+year, so reloading the page or adding a duplicate search
-  doesn't make redundant eBay calls. See the "Source health & request log"
-  panel at the bottom of the page for a live view of cache hits vs. live
-  calls.
+- **Caching**: search results are cached in memory for 60 seconds per
+  title+issue+year (shared across all users), so listings stay effectively
+  live on every real visit while still guarding against a burst of
+  duplicate calls from something like a double page-load. See the "Source
+  health & request log" panel at the bottom of the page for a live view of
+  cache hits vs. live calls.
 - **Errors, rate limits, and outages**: a failed eBay call never falls back
   to scraping. It's logged and surfaced as a status on the "eBay" source
   card (green/yellow/red) with the reason, and the affected book simply
