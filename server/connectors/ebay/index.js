@@ -5,6 +5,7 @@
 
 const { searchItemSummaries, EbayApiError } = require('./client');
 const { normalizeEbayItem } = require('./normalize');
+const { isPlausibleMatch } = require('./match');
 const { loadConfig } = require('./config');
 
 function buildQuery(book) {
@@ -22,7 +23,8 @@ function buildQuery(book) {
 async function searchForBook(book) {
   const foundDate = new Date().toISOString().slice(0, 10);
   const items = await searchItemSummaries(buildQuery(book), { limit: 20 });
-  return items.map((item) =>
+  const plausible = items.filter((item) => isPlausibleMatch(item, book));
+  return plausible.map((item) =>
     normalizeEbayItem(item, {
       wantId: book.id,
       comicTitle: book.title,

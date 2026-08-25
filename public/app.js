@@ -224,19 +224,34 @@ function renderSortControl(book, sortKey) {
   '</span>';
 }
 
-function highestPricedListingImage(listings) {
-  var priced = listings.filter(function (l) { return l.image && l.price !== null && l.price !== undefined; });
-  if (priced.length) {
-    return priced.reduce(function (best, l) {
-      return Number(l.price) > Number(best.price) ? l : best;
-    }).image;
-  }
-  // No priced listing has an image (e.g. all prices are TBD) — fall back to
-  // any listing with an image rather than showing nothing.
-  for (var i = 0; i < listings.length; i++) {
-    if (listings[i].image) return listings[i].image;
-  }
-  return null;
+function highestPricedImageFrom(withImage) {
+  var priced = withImage.filter(function (l) { return l.price !== null && l.price !== undefined; });
+  var pool = priced.length ? priced : withImage;
+  return pool.reduce(function (best, l) {
+    return Number(l.price || 0) > Number(best.price || 0) ? l : best;
+  }).image;
+}
+
+function mostFrequentListingImage(listings) {
+  var withImage = listings.filter(function (l) { return l.image; });
+  if (!withImage.length) return null;
+
+  var counts = {};
+  withImage.forEach(function (l) { counts[l.image] = (counts[l.image] || 0) + 1; });
+  var maxCount = 0;
+  Object.keys(counts).forEach(function (url) { if (counts[url] > maxCount) maxCount = counts[url]; });
+
+  // Every photo is unique (no listing actually shares one with another) —
+  // frequency can't tell us anything useful, so fall back to the
+  // highest-priced listing's photo instead of an arbitrary pick.
+  if (maxCount <= 1) return highestPricedImageFrom(withImage);
+
+  var candidateUrls = Object.keys(counts).filter(function (url) { return counts[url] === maxCount; });
+  if (candidateUrls.length === 1) return candidateUrls[0];
+
+  // Tie between multiple equally-frequent photos — break by highest price.
+  var tied = withImage.filter(function (l) { return candidateUrls.indexOf(l.image) !== -1; });
+  return highestPricedImageFrom(tied);
 }
 
 function renderBookCard(book, state) {
@@ -245,7 +260,7 @@ function renderBookCard(book, state) {
   var pillText = listings.length ? (listings.length + (listings.length === 1 ? ' listing' : ' listings')) : (book.searchPending ? 'Search queued' : 'Watching');
   var sortKey = SORT_PREFS[book.id] || DEFAULT_SORT;
   var sortControl = listings.length > 1 ? renderSortControl(book, sortKey) : '';
-  var coverSrc = highestPricedListingImage(listings);
+  var coverSrc = mostFrequentListingImage(listings);
   var coverHtml = coverSrc
     ? '<img class="book-cover" src="' + esc(coverSrc) + '" alt="' + esc(book.title) + ' #' + esc(book.issue) + ' — photo from an eBay listing" loading="lazy">'
     : '<div class="book-cover book-cover-placeholder" role="img" aria-label="Cover not yet available"></div>';
