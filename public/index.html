@@ -544,6 +544,33 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  .jump-nav {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    font: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 46;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+    max-width: calc(100vw - 32px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .jump-nav.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .jump-nav:hover { border-color: var(--accent); color: var(--accent-strong); }
+
   .back-to-top {
     position: fixed;
     bottom: 24px;
@@ -569,6 +596,7 @@
 
   @media (max-width: 640px) {
     .back-to-top { bottom: 18px; right: 16px; padding: 11px 16px; font-size: 13px; }
+    .jump-nav { bottom: 72px; font-size: 12px; padding: 9px 14px; }
   }
 
   footer {
@@ -771,6 +799,7 @@
 <body>
 <div class="wrap" id="app"><p style="color:var(--ink-faint)">Loading…</p></div>
 <div class="toast" id="toast"></div>
+<button type="button" class="jump-nav" id="jump-nav"></button>
 <button type="button" class="back-to-top" id="back-to-top">↑ Back to top</button>
 <script src="app.js"></script>
 </body>

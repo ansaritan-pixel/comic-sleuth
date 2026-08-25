@@ -364,10 +364,14 @@ function renderApp(state) {
   applyTitleFilter();
 }
 
-function scrollToBook(bookId) {
+function scrollToCard(bookId) {
   var card = document.querySelector('.book-card[data-book-id="' + bookId + '"]');
   if (!card) return;
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function scrollToBook(bookId) {
+  scrollToCard(bookId);
   showBackToTop();
 }
 
@@ -385,6 +389,88 @@ function setupBackToTop() {
   });
   window.addEventListener('scroll', function () {
     if (window.scrollY < 200) btn.classList.remove('show');
+  }, { passive: true });
+}
+
+// Visible (non-filtered) book cards, in the same title-then-issue order
+// they're rendered in — the "next" card after a title's last issue is
+// naturally that title's successor, so no separate title-boundary logic
+// is needed beyond walking this list.
+function visibleBookCards() {
+  return Array.prototype.filter.call(document.querySelectorAll('.book-card'), function (c) {
+    return c.style.display !== 'none';
+  });
+}
+
+// The last card whose top has scrolled above this line counts as "current".
+// "Current" card is whichever card's vertical center sits closest to this
+// line (a fraction of viewport height, not a fixed pixel value, so it
+// scales with both viewport size and card height instead of lagging on
+// tall multi-listing cards or short lists).
+function jumpNavCurrentIndex(cards) {
+  var refY = window.innerHeight * 0.35;
+  var best = -1, bestDist = Infinity;
+  for (var i = 0; i < cards.length; i++) {
+    var rect = cards[i].getBoundingClientRect();
+    var dist = Math.abs((rect.top + rect.bottom) / 2 - refY);
+    if (dist < bestDist) { bestDist = dist; best = i; }
+  }
+  // Nothing scrolled into range yet (e.g. still above the first card).
+  if (best >= 0 && cards[best].getBoundingClientRect().top > refY) return -1;
+  return best;
+}
+
+var jumpNavHideTimer = null;
+
+function updateJumpNav(direction) {
+  var el = document.getElementById('jump-nav');
+  if (!el) return;
+
+  var cards = visibleBookCards();
+  if (cards.length < 2) { el.classList.remove('show'); return; }
+
+  var idx = jumpNavCurrentIndex(cards);
+  var targetIdx = direction === 'down' ? idx + 1 : idx - 1;
+  if (targetIdx < 0 || targetIdx >= cards.length) { el.classList.remove('show'); return; }
+
+  var currentCard = idx >= 0 ? cards[idx] : null;
+  var targetCard = cards[targetIdx];
+  var sameTitle = currentCard && currentCard.getAttribute('data-title') === targetCard.getAttribute('data-title');
+  var issueEl = targetCard.querySelector('.book-issue');
+  var label = (direction === 'down' ? '↓ Next' : '↑ Previous') + (sameTitle ? ' issue: ' : ': ') +
+    targetCard.getAttribute('data-title') + ' ' + (issueEl ? issueEl.textContent : '');
+
+  el.textContent = label;
+  el.setAttribute('data-jump-target', targetCard.getAttribute('data-book-id'));
+  el.classList.add('show');
+  clearTimeout(jumpNavHideTimer);
+  jumpNavHideTimer = setTimeout(function () { el.classList.remove('show'); }, 1800);
+}
+
+function setupJumpNav() {
+  var el = document.getElementById('jump-nav');
+  if (!el) return;
+
+  el.addEventListener('click', function () {
+    var bookId = el.getAttribute('data-jump-target');
+    el.classList.remove('show');
+    if (bookId) scrollToCard(bookId);
+  });
+
+  var lastY = window.scrollY;
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      var y = window.scrollY;
+      var delta = y - lastY;
+      if (Math.abs(delta) > 4) {
+        updateJumpNav(delta > 0 ? 'down' : 'up');
+        lastY = y;
+      }
+      ticking = false;
+    });
   }, { passive: true });
 }
 
@@ -562,6 +648,7 @@ function wireEvents(state) {
 var CURRENT_STATE = null;
 
 setupBackToTop();
+setupJumpNav();
 
 apiGet('/api/state')
   .then(function (state) { renderApp(state); })
