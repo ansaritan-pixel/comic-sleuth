@@ -121,6 +121,22 @@ function renderRequestLog(state) {
 
 var SORT_PREFS = {};
 var COLLAPSED_LISTINGS = {};
+
+function booksWithListings(state) {
+  return state.wantList.filter(function (b) {
+    return state.listings.some(function (l) { return l.wantId === b.id; });
+  });
+}
+
+// null when there's nothing to bulk-toggle; otherwise the label reflects
+// what clicking it would do next — "Collapse all" unless every book with
+// listings is already collapsed, in which case "Expand all".
+function bulkToggleLabel(state) {
+  var withListings = booksWithListings(state);
+  if (!withListings.length) return null;
+  var allCollapsed = withListings.every(function (b) { return !!COLLAPSED_LISTINGS[b.id]; });
+  return allCollapsed ? 'Expand all' : 'Collapse all';
+}
 var DEFAULT_SORT = 'price-desc';
 var CURRENT_TITLE_FILTER = '';
 
@@ -367,8 +383,11 @@ function renderApp(state) {
   '</details>';
 
   html += '<section class="list">';
+  var bulkLabel = bulkToggleLabel(state);
   html += '<div class="list-head"><h2>Watching (' + state.wantList.length + ')</h2>' +
-    '<div class="title-filter-wrap"><label for="title-filter" class="title-filter-label">Filter by title</label>' +
+    '<div class="title-filter-wrap">' +
+    (bulkLabel ? '<button type="button" id="toggle-all-listings-btn" class="toggle-listings-btn">' + bulkLabel + '</button>' : '') +
+    '<label for="title-filter" class="title-filter-label">Filter by title</label>' +
     '<span class="sort-wrap"><select id="title-filter" class="sort-select" aria-label="Filter by comic title"><option value="">All titles</option>' +
     distinctTitles(state.wantList).map(function (t) {
       return '<option value="' + esc(t.key) + '"' + (CURRENT_TITLE_FILTER === t.key ? ' selected' : '') + '>' + esc(t.label) + '</option>';
@@ -676,6 +695,17 @@ function wireEvents(state) {
     titleFilterSelect.addEventListener('change', function (e) {
       CURRENT_TITLE_FILTER = e.currentTarget.value;
       applyTitleFilter();
+    });
+  }
+
+  var toggleAllBtn = document.getElementById('toggle-all-listings-btn');
+  if (toggleAllBtn) {
+    toggleAllBtn.addEventListener('click', function () {
+      var withListings = booksWithListings(state);
+      var allCollapsed = withListings.every(function (b) { return !!COLLAPSED_LISTINGS[b.id]; });
+      var target = !allCollapsed;
+      withListings.forEach(function (b) { COLLAPSED_LISTINGS[b.id] = target; });
+      renderApp(state);
     });
   }
 }
