@@ -120,7 +120,7 @@ function renderRequestLog(state) {
 }
 
 var SORT_PREFS = {};
-var DEFAULT_SORT = 'price-asc';
+var DEFAULT_SORT = 'price-desc';
 var CURRENT_TITLE_FILTER = '';
 
 function distinctTitles(wantList) {
