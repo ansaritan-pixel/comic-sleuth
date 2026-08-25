@@ -153,7 +153,7 @@ router.post('/wantlist', writeLimiter, async (req, res, next) => {
     }
 
     const newBook = {
-      id: slugify(cleanTitle) + cleanIssue + '-' + Date.now().toString(36).slice(-4),
+      id: slugify(cleanTitle) + slugify(cleanIssue) + '-' + Date.now().toString(36).slice(-4),
       title: cleanTitle,
       issue: cleanIssue,
       publisher: cleanPublisher || '—',
