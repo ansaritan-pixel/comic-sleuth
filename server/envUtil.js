@@ -10,4 +10,16 @@ function cleanEnvValue(v) {
   return unquoted ? unquoted[2] : trimmed;
 }
 
-module.exports = { cleanEnvValue };
+// Constant-time string comparison for secret tokens, so comparing a
+// visitor's cookie against OWNER_TESTER_TOKEN can't leak information via
+// response-timing differences the way a plain === would.
+const crypto = require('crypto');
+
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a ?? ''));
+  const bufB = Buffer.from(String(b ?? ''));
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+module.exports = { cleanEnvValue, safeEqual };

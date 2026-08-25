@@ -6,8 +6,21 @@ const requestLog = require('../requestLog');
 const state = require('../state');
 const store = require('../store');
 const { OWNER_TOKEN } = require('../ownerToken');
+const { safeEqual } = require('../envUtil');
+const { createRateLimiter } = require('../rateLimit');
 
 const router = express.Router();
+
+const MAX_TITLE_LENGTH = 200;
+const MAX_PUBLISHER_LENGTH = 200;
+const MAX_ISSUE_LENGTH = 20;
+const MAX_YEAR_LENGTH = 20;
+
+// Applies only to the write endpoints (add/remove) — each one can trigger
+// a real, uncached eBay API call and a storage write, so this is what
+// actually needs protecting from a scripted spam burst. Generous enough
+// that no real person adding/removing books by hand would ever notice it.
+const writeLimiter = createRateLimiter({ windowMs: 5 * 60 * 1000, max: 30 });
 
 // Short on purpose: the goal is "fresh enough to actually go buy," not a
 // bandwidth-saving cache. 60s is a nominal safety margin against a burst of
@@ -82,7 +95,7 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
 
 async function buildState({ testerId, refreshBookId = null }) {
   const wantList = await store.readWantList(testerId);
-  const isOwner = !!OWNER_TOKEN && testerId === OWNER_TOKEN;
+  const isOwner = !!OWNER_TOKEN && safeEqual(testerId, OWNER_TOKEN);
 
   const listingsByBook = await mapWithConcurrency(wantList, SEARCH_CONCURRENCY, (book) =>
     getListingsForBook(book, { forceFresh: book.id === refreshBookId })
@@ -112,14 +125,24 @@ router.get('/state', async (req, res, next) => {
   }
 });
 
-router.post('/wantlist', async (req, res, next) => {
+router.post('/wantlist', writeLimiter, async (req, res, next) => {
   try {
     const { title, issue, publisher, year } = req.body || {};
     const cleanTitle = String(title || '').trim();
     const cleanIssue = String(issue || '').trim();
+    const cleanPublisher = String(publisher || '').trim();
+    const cleanYear = String(year || '').trim();
 
     if (!cleanTitle || !cleanIssue) {
       return res.status(400).json({ error: 'title and issue are required.' });
+    }
+    if (
+      cleanTitle.length > MAX_TITLE_LENGTH ||
+      cleanIssue.length > MAX_ISSUE_LENGTH ||
+      cleanPublisher.length > MAX_PUBLISHER_LENGTH ||
+      cleanYear.length > MAX_YEAR_LENGTH
+    ) {
+      return res.status(400).json({ error: 'One or more fields are too long.' });
     }
 
     const wantList = await store.readWantList(req.testerId);
@@ -133,8 +156,8 @@ router.post('/wantlist', async (req, res, next) => {
       id: slugify(cleanTitle) + cleanIssue + '-' + Date.now().toString(36).slice(-4),
       title: cleanTitle,
       issue: cleanIssue,
-      publisher: String(publisher || '').trim() || '—',
-      year: String(year || '').trim() || '—',
+      publisher: cleanPublisher || '—',
+      year: cleanYear || '—',
       addedDate: new Date().toISOString().slice(0, 10),
     };
 
@@ -147,7 +170,7 @@ router.post('/wantlist', async (req, res, next) => {
   }
 });
 
-router.delete('/wantlist/:id', async (req, res, next) => {
+router.delete('/wantlist/:id', writeLimiter, async (req, res, next) => {
   try {
     const wantList = await store.readWantList(req.testerId);
     const remaining = wantList.filter((b) => b.id !== req.params.id);

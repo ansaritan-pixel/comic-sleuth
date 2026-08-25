@@ -4,6 +4,14 @@
 
 const GRADING_COMPANIES = ['CGC', 'CBCS', 'PGX'];
 
+// Only ever render http(s) links/images from eBay's response — a
+// defense-in-depth guard against a malformed or unexpected value (e.g.
+// javascript:) ever becoming a clickable href or img src, regardless of
+// how trustworthy the source API is expected to be.
+function httpUrlOrNull(u) {
+  return typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null;
+}
+
 function parseGrading(title) {
   if (!title) return { gradingCompany: null, grade: null };
   const upper = title.toUpperCase();
@@ -19,10 +27,10 @@ function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
   const { gradingCompany, grade } = parseGrading(item.title);
   const price = item.price && item.price.value != null ? Number(item.price.value) : null;
   const currency = (item.price && item.price.currency) || null;
-  const image =
+  const image = httpUrlOrNull(
     (item.image && item.image.imageUrl) ||
-    (item.thumbnailImages && item.thumbnailImages[0] && item.thumbnailImages[0].imageUrl) ||
-    null;
+      (item.thumbnailImages && item.thumbnailImages[0] && item.thumbnailImages[0].imageUrl)
+  );
 
   return {
     wantId,
@@ -32,7 +40,7 @@ function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
     issue,
     listingTitle: item.title || null,
     itemId: item.itemId || null,
-    url: item.itemWebUrl || item.itemHref || null,
+    url: httpUrlOrNull(item.itemWebUrl || item.itemHref),
     price,
     currency,
     gradingCompany,
