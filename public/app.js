@@ -186,9 +186,7 @@ function renderListingRows(listings, sortKey) {
   }
   listings = sortListings(listings, sortKey || DEFAULT_SORT);
   return listings.map(function (l) {
-    var isNew = l.foundDate === CURRENT_STATE.lastRun;
     var badges = '';
-    if (isNew) badges += '<span class="newpill">NEW</span>';
     if (l.facsimile) badges += '<span class="facsimile">FACSIMILE</span>';
     var soldBadge = l.sold ? '<span class="soldpill">SOLD' + (l.soldDate ? ' · ' + fmtDate(l.soldDate) : '') + '</span>' : '';
     var srcStatus = sourceStatus(CURRENT_STATE, l.source).status || 'green';
