@@ -351,8 +351,7 @@ function renderApp(state) {
 function scrollToBook(bookId) {
   var card = document.querySelector('.book-card[data-book-id="' + bookId + '"]');
   if (!card) return;
-  var target = card.querySelector('table.listings') || card;
-  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showToast(msg) {
