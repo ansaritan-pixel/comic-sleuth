@@ -36,6 +36,11 @@ official Browse API — no web scraping, no browser automation.
    **`.env` is gitignored and will never be committed.** Nobody but you
    should ever see the values in it — don't paste them into chat, issues, or
    commit messages.
+
+   Optionally, also set `COMICVINE_API_KEY` (free, from
+   [comicvine.gamespot.com/api](https://comicvine.gamespot.com/api/)) to get
+   real cover art on want-list books. Not required — without it, book cards
+   just fall back to a photo from an eBay listing, or a placeholder.
 3. Start the server:
    ```
    npm start
@@ -82,6 +87,18 @@ is the only place that reads these variables.
   card (green/yellow/red) with the reason, and the affected book simply
   shows its most recent cached results (or none) until the next successful
   search.
+
+## Cover art (Comic Vine)
+
+If `COMICVINE_API_KEY` is set, each want-list book gets a one-time lookup
+against Comic Vine's `/search/` endpoint (`server/connectors/comicvine/`),
+matched on issue number, then disambiguated by title and year when a title
+has multiple volumes/reprints. The result (a match, or a confirmed no-match)
+is persisted on the book so it's never looked up twice — well within Comic
+Vine's rate limit regardless of want-list size. A transient failure (network
+blip, rate limit) is *not* persisted, so it's retried on a later page load
+rather than permanently giving up. If a book has no cover art, the UI falls
+back to a photo from its highest-priced eBay listing, then to a placeholder.
 
 ## Not yet implemented
 
