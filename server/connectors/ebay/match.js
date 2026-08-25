@@ -20,7 +20,12 @@ function titleMatches(itemTitle, bookTitle) {
 function issueNumberMatches(itemTitle, issue) {
   const digits = String(issue || '').trim().replace(/[^0-9]/g, '');
   if (!digits) return true; // non-numeric issue label (e.g. "Annual") — don't over-filter
-  const re = new RegExp(`(?<![0-9])${digits}(?![0-9])`);
+  // Requires the number to actually be marked as an issue number the way
+  // comic listings conventionally do it — after '#' or "No." — not just
+  // any bare digit anywhere in the title. A bare-digit check falsely
+  // matched things like "Volume 1" or "Vol. 1" (a compilation's volume
+  // number, not an issue number) against a want-list issue of "1".
+  const re = new RegExp(`(?:#\\s*|\\bno\\.?\\s*)${digits}(?![0-9])`, 'i');
   return re.test(itemTitle || '');
 }
 
