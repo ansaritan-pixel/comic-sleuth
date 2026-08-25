@@ -331,7 +331,7 @@ function renderApp(state) {
         '<circle cx="18.3" cy="2.2" r="0.85"></circle>' +
         '<circle cx="19.7" cy="3.3" r="0.7"></circle>' +
       '</svg>' +
-      '<span class="hero-search-kicker">The trail starts here</span>' +
+      '<span class="hero-search-kicker">Start your comic hunt</span>' +
     '</div>' +
     '<form id="quick-search-form" class="hero-search-form">' +
       '<label for="quick-search-input" class="hero-search-label">Give me a Clue?</label>' +
