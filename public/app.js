@@ -291,7 +291,7 @@ function renderApp(state) {
   var html = '';
   html += '<div class="brand-bar"><img class="brand-logo" src="' + LOGO_DATA_URI + '" alt="The Comic Sleuth logo" width="88" height="88"><span class="brand-name">The Comic Sleuth</span></div>';
   html += '<header class="masthead">';
-  html += '<h1 class="title">Your want list, watched across comic markets</h1>';
+  html += '<h1 class="title">Your want list, watched across eBay and other comic markets</h1>';
   html += '<p class="lede">Track specific issues by grade and price. eBay listings are pulled live from eBay’s official Browse API (asking prices only — never treated as sales or fair-market-value evidence). Other sources below are placeholders not yet implemented in this build.</p>';
   html += '<div class="stat-row">';
   html += '<div class="stat"><span class="num">' + state.wantList.length + '</span><span class="label">Books watched</span></div>';
