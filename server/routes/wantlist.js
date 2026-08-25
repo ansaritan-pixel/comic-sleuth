@@ -164,7 +164,8 @@ router.post('/wantlist', writeLimiter, async (req, res, next) => {
     wantList.push(newBook);
     await store.writeWantList(req.testerId, wantList);
 
-    res.status(201).json(await buildState({ testerId: req.testerId, refreshBookId: newBook.id }));
+    const newState = await buildState({ testerId: req.testerId, refreshBookId: newBook.id });
+    res.status(201).json(Object.assign(newState, { addedBookId: newBook.id }));
   } catch (err) {
     next(err);
   }

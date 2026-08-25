@@ -348,6 +348,13 @@ function renderApp(state) {
   applyTitleFilter();
 }
 
+function scrollToBook(bookId) {
+  var card = document.querySelector('.book-card[data-book-id="' + bookId + '"]');
+  if (!card) return;
+  var target = card.querySelector('table.listings') || card;
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg;
@@ -410,8 +417,10 @@ function wireEvents(state) {
 
       apiSend('/api/wantlist', 'POST', { title: title, issue: issue, publisher: publisher, year: year })
         .then(function (newState) {
+          if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== title) CURRENT_TITLE_FILTER = '';
           renderApp(newState);
           showToast('Added ' + title + ' #' + issue + ' — eBay searched.');
+          if (newState.addedBookId) scrollToBook(newState.addedBookId);
         })
         .catch(function (err) {
           btn.disabled = false;
