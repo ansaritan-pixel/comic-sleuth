@@ -380,6 +380,47 @@
     pointer-events: none;
   }
 
+  .quicksearch { margin-bottom: 20px; }
+  .quicksearch label {
+    display: block;
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .quicksearch-row { display: flex; gap: 10px; }
+  .quicksearch-row input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 16px;
+    padding: 10px 12px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .quicksearch-row input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .quicksearch-row button {
+    font: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    background: none;
+    border: 1px solid var(--accent);
+    color: var(--accent-strong);
+    border-radius: 3px;
+    padding: 10px 18px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: none;
+  }
+  .quicksearch-row button:hover { background: var(--accent-bg); }
+  .quicksearch-row button:disabled { opacity: 0.6; cursor: default; }
+
   .addbook {
     background: var(--surface);
     border: 1px solid var(--line);

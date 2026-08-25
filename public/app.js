@@ -317,6 +317,16 @@ function renderApp(state) {
     html += '</div></details></section>';
   }
 
+  html += '<section class="quicksearch">' +
+    '<form id="quick-search-form">' +
+      '<label for="quick-search-input">Let’s Sleuth!</label>' +
+      '<div class="quicksearch-row">' +
+        '<input id="quick-search-input" type="text" placeholder="e.g. Amazing Spider-Man #1 1963" autocomplete="off">' +
+        '<button type="submit" id="quick-search-btn">Search</button>' +
+      '</div>' +
+    '</form>' +
+  '</section>';
+
   html += '<section class="addbook">';
   html += '<h2>Add a comic to watch</h2>';
   html += '<form id="add-form">' +
@@ -399,6 +409,58 @@ async function apiSend(url, method, body) {
   return data;
 }
 
+// Pulls a title, issue number, and (optional) year out of one free-typed
+// search string, e.g. "Amazing Spider-Man #1 1963" or "Batman 251" or
+// "Fantastic Four (1961) #52". Reuses the exact same add/search endpoint
+// and server-side match logic as the structured form below — only the
+// parsing of the input differs, not how a match is validated.
+function parseQuickSearch(raw) {
+  var s = String(raw == null ? '' : raw);
+  var year = null;
+
+  var yearMatch = s.match(/\(?\b(18|19|20)\d{2}\b\)?/);
+  if (yearMatch) {
+    year = yearMatch[0].replace(/[()]/g, '');
+    s = s.slice(0, yearMatch.index) + s.slice(yearMatch.index + yearMatch[0].length);
+  }
+
+  var issue = null;
+  var issueMatch = s.match(/#\s*(\d+[a-z]?)/i) || s.match(/\bno\.?\s*(\d+[a-z]?)\b/i);
+  if (issueMatch) {
+    issue = issueMatch[1];
+    s = s.slice(0, issueMatch.index) + s.slice(issueMatch.index + issueMatch[0].length);
+  } else {
+    var nums = s.match(/\b\d+[a-z]?\b/gi);
+    if (nums && nums.length) {
+      issue = nums[nums.length - 1];
+      var idx = s.lastIndexOf(issue);
+      s = s.slice(0, idx) + s.slice(idx + issue.length);
+    }
+  }
+
+  var title = s.replace(/[(),#]/g, ' ').replace(/\s+/g, ' ').trim();
+  return { title: title, issue: issue, year: year };
+}
+
+function submitNewBook(payload, btn, idleLabel, busyLabel) {
+  btn.disabled = true;
+  btn.textContent = busyLabel;
+
+  return apiSend('/api/wantlist', 'POST', payload)
+    .then(function (newState) {
+      if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== payload.title) CURRENT_TITLE_FILTER = '';
+      renderApp(newState);
+      showToast('Added ' + payload.title + ' #' + payload.issue + ' — eBay searched.');
+      if (newState.addedBookId) scrollToBook(newState.addedBookId);
+    })
+    .catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = idleLabel;
+      showToast('Could not add book: ' + err.message);
+      throw err;
+    });
+}
+
 function wireEvents(state) {
   var form = document.getElementById('add-form');
   if (form) {
@@ -411,21 +473,27 @@ function wireEvents(state) {
       if (!title || !issue) return;
 
       var btn = document.getElementById('add-submit-btn');
-      btn.disabled = true;
-      btn.textContent = 'Searching eBay…';
+      submitNewBook({ title: title, issue: issue, publisher: publisher, year: year }, btn, 'Let’s Sleuth!', 'Searching eBay…').catch(function () {});
+    });
+  }
 
-      apiSend('/api/wantlist', 'POST', { title: title, issue: issue, publisher: publisher, year: year })
-        .then(function (newState) {
-          if (CURRENT_TITLE_FILTER && CURRENT_TITLE_FILTER !== title) CURRENT_TITLE_FILTER = '';
-          renderApp(newState);
-          showToast('Added ' + title + ' #' + issue + ' — eBay searched.');
-          if (newState.addedBookId) scrollToBook(newState.addedBookId);
-        })
-        .catch(function (err) {
-          btn.disabled = false;
-          btn.textContent = 'Let’s Sleuth!';
-          showToast('Could not add book: ' + err.message);
-        });
+  var quickForm = document.getElementById('quick-search-form');
+  if (quickForm) {
+    quickForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var input = document.getElementById('quick-search-input');
+      var parsed = parseQuickSearch(input.value);
+      var btn = document.getElementById('quick-search-btn');
+
+      if (!parsed.title || !parsed.issue) {
+        showToast('Include a title and an issue number, e.g. "Amazing Spider-Man #1 1963".');
+        return;
+      }
+
+      submitNewBook(
+        { title: parsed.title, issue: parsed.issue, publisher: '', year: parsed.year || '' },
+        btn, 'Search', 'Searching eBay…'
+      ).then(function () { input.value = ''; }).catch(function () {});
     });
   }
 
