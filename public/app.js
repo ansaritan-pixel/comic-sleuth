@@ -410,18 +410,15 @@ function scrollToCard(bookId) {
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// Always visible (see the "show" class already on the button in
+// index.html) rather than gated on scroll position, so it's there
+// whether or not the page happens to be moving right now.
 function setupBackToTop() {
   var btn = document.getElementById('back-to-top');
   if (!btn) return;
   btn.addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    btn.classList.remove('show');
   });
-  // Available on any scroll, up or down, once far enough from the top —
-  // not just right after adding a book.
-  window.addEventListener('scroll', function () {
-    btn.classList.toggle('show', window.scrollY >= 200);
-  }, { passive: true });
 }
 
 // Visible (non-filtered) book cards, in the same title-then-issue order
