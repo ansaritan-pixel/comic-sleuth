@@ -24,8 +24,25 @@ function issueNumberMatches(itemTitle, issue) {
   return re.test(itemTitle || '');
 }
 
-function isPlausibleMatch(item, book) {
-  return titleMatches(item.title, book.title) && issueNumberMatches(item.title, book.issue);
+// Requires the exact publication year in the listing title when one was
+// entered for the book — this is what actually separates the original
+// printing from same-title/same-issue-number relaunches, later volumes,
+// and facsimile reprints, none of which issue number or title alone can
+// tell apart (e.g. Amazing Spider-Man has had multiple #1s across
+// different volumes/relaunches).
+function yearMatches(itemTitle, year) {
+  const y = String(year || '').trim();
+  if (!/^\d{4}$/.test(y)) return true; // no real year entered — nothing to check
+  const re = new RegExp(`(?<![0-9])${y}(?![0-9])`);
+  return re.test(itemTitle || '');
 }
 
-module.exports = { isPlausibleMatch, titleMatches, issueNumberMatches };
+function isPlausibleMatch(item, book) {
+  return (
+    titleMatches(item.title, book.title) &&
+    issueNumberMatches(item.title, book.issue) &&
+    yearMatches(item.title, book.year)
+  );
+}
+
+module.exports = { isPlausibleMatch, titleMatches, issueNumberMatches, yearMatches };
