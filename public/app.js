@@ -224,34 +224,17 @@ function renderSortControl(book, sortKey) {
   '</span>';
 }
 
-function highestPricedListingImage(listings) {
-  var priced = listings.filter(function (l) { return l.image && l.price !== null && l.price !== undefined; });
-  if (priced.length) {
-    return priced.reduce(function (best, l) {
-      return Number(l.price) > Number(best.price) ? l : best;
-    }).image;
-  }
-  // No priced listing has an image (e.g. all prices are TBD) — fall back to
-  // any listing with an image rather than showing nothing.
-  for (var i = 0; i < listings.length; i++) {
-    if (listings[i].image) return listings[i].image;
-  }
-  return null;
-}
-
 function renderBookCard(book, state) {
   var listings = state.listings.filter(function (l) { return l.wantId === book.id; });
   var pillClass = listings.length ? 'found' : (book.searchPending ? 'pending' : 'empty');
   var pillText = listings.length ? (listings.length + (listings.length === 1 ? ' listing' : ' listings')) : (book.searchPending ? 'Search queued' : 'Watching');
   var sortKey = SORT_PREFS[book.id] || DEFAULT_SORT;
   var sortControl = listings.length > 1 ? renderSortControl(book, sortKey) : '';
-  var listingImage = highestPricedListingImage(listings);
-  var coverSrc = book.coverImage || listingImage;
-  var coverAlt = book.coverImage
-    ? esc(book.title) + ' #' + esc(book.issue) + ' cover'
-    : esc(book.title) + ' #' + esc(book.issue) + ' — photo from an eBay listing';
-  var coverHtml = coverSrc
-    ? '<img class="book-cover" src="' + esc(coverSrc) + '" alt="' + coverAlt + '" loading="lazy">'
+  // Cover art comes only from Comic Vine (matched on title/issue/year) —
+  // no eBay listing photo fallback, so a book either shows its real cover
+  // or the placeholder, never an arbitrary seller's photo.
+  var coverHtml = book.coverImage
+    ? '<img class="book-cover" src="' + esc(book.coverImage) + '" alt="' + esc(book.title) + ' #' + esc(book.issue) + ' cover" loading="lazy">'
     : '<div class="book-cover book-cover-placeholder" role="img" aria-label="Cover not yet available"></div>';
   return '<div class="book-card" data-book-id="' + esc(book.id) + '" data-title="' + esc(book.title) + '">' +
     '<div class="book-head">' +

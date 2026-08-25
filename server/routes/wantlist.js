@@ -82,11 +82,24 @@ async function backfillCoverImages(wantList) {
   if (!needsCover.length) return false;
 
   await mapWithConcurrency(needsCover, SEARCH_CONCURRENCY, async (book) => {
+    const comicLabel = `${book.title} #${book.issue}`;
     try {
       book.coverImage = await comicVine.findCoverImage(book);
       book.coverLookupDone = true;
+      requestLog.addEntry({
+        domain: 'Comic Vine',
+        comic: comicLabel,
+        result: book.coverImage ? 'found' : 'empty',
+        cacheHit: false,
+      });
     } catch (err) {
       // Leave coverLookupDone unset so this book is retried next time.
+      requestLog.addEntry({
+        domain: 'Comic Vine',
+        comic: comicLabel,
+        result: err.code === 'COMICVINE_RATE_LIMITED' ? 'rate_limited' : 'error',
+        cacheHit: false,
+      });
     }
   });
   return true;
