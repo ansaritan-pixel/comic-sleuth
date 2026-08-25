@@ -300,20 +300,22 @@ function renderApp(state) {
   html += '</div>';
   html += '</header>';
 
-  html += '<section class="sources">';
-  html += '<h2>Sources monitored</h2>';
-  html += '<p class="source-summary">' + esc(renderSourceSummary(state)) + '</p>';
-  html += '<p class="source-check-summary">' + esc(renderCheckSummary(state)) + '</p>';
-  html += '<div class="source-grid">' + renderSourceGrid(state) + '</div>';
-  html += '</section>';
+  if (state.isOwner) {
+    html += '<section class="sources">';
+    html += '<h2>Sources monitored</h2>';
+    html += '<p class="source-summary">' + esc(renderSourceSummary(state)) + '</p>';
+    html += '<p class="source-check-summary">' + esc(renderCheckSummary(state)) + '</p>';
+    html += '<div class="source-grid">' + renderSourceGrid(state) + '</div>';
+    html += '</section>';
 
-  html += '<section class="admin-panel-wrap"><details class="admin-panel"><summary>Source health &amp; request log (debug)</summary><div class="admin-panel-body">';
-  html += '<p class="source-summary">' + renderRequestTotal(state) + ' request' + (renderRequestTotal(state) === 1 ? '' : 's') + ' made today across ' + state.sources.length + ' source' + (state.sources.length === 1 ? '' : 's') + '.</p>';
-  html += '<div class="health-grid">' + renderSourceHealth(state) + '</div>';
-  html += '<h3>Recent requests</h3>';
-  html += '<p class="log-hint">Metadata only — timestamp, source, comic, and result. The page content of any third-party site is never stored here. Showing the most recent ' + Math.min((state.requestLog || []).length, 25) + ' of ' + (state.requestLog || []).length + '.</p>';
-  html += renderRequestLog(state);
-  html += '</div></details></section>';
+    html += '<section class="admin-panel-wrap"><details class="admin-panel"><summary>Source health &amp; request log (debug)</summary><div class="admin-panel-body">';
+    html += '<p class="source-summary">' + renderRequestTotal(state) + ' request' + (renderRequestTotal(state) === 1 ? '' : 's') + ' made today across ' + state.sources.length + ' source' + (state.sources.length === 1 ? '' : 's') + '.</p>';
+    html += '<div class="health-grid">' + renderSourceHealth(state) + '</div>';
+    html += '<h3>Recent requests</h3>';
+    html += '<p class="log-hint">Metadata only — timestamp, source, comic, and result. The page content of any third-party site is never stored here. Showing the most recent ' + Math.min((state.requestLog || []).length, 25) + ' of ' + (state.requestLog || []).length + '.</p>';
+    html += renderRequestLog(state);
+    html += '</div></details></section>';
+  }
 
   html += '<section class="addbook">';
   html += '<h2>Add a comic to watch</h2>';

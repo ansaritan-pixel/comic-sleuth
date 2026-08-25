@@ -5,6 +5,7 @@ const { mapWithConcurrency } = require('../concurrency');
 const requestLog = require('../requestLog');
 const state = require('../state');
 const store = require('../store');
+const { OWNER_TOKEN } = require('../ownerToken');
 
 const router = express.Router();
 
@@ -75,6 +76,7 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
 
 async function buildState({ testerId, refreshBookId = null }) {
   const wantList = await store.readWantList(testerId);
+  const isOwner = !!OWNER_TOKEN && testerId === OWNER_TOKEN;
 
   const listingsByBook = await mapWithConcurrency(wantList, SEARCH_CONCURRENCY, (book) =>
     getListingsForBook(book, { forceFresh: book.id === refreshBookId })
@@ -84,10 +86,15 @@ async function buildState({ testerId, refreshBookId = null }) {
   return {
     wantList: wantList.map((b) => ({ ...b, searchPending: false })),
     listings,
+    // Kept for everyone — listing rows use it to color-code each
+    // source's status dot regardless of who's viewing.
     sources: state.buildSources(ebay.currentEnvironment()),
     lastRun: new Date().toISOString().slice(0, 10),
     bookCap: state.BOOK_CAP,
-    requestLog: requestLog.getRecent(25),
+    isOwner,
+    // The debug request log is operational detail — only sent to the
+    // owner's own link, not to beta testers or anonymous visitors.
+    requestLog: isOwner ? requestLog.getRecent(25) : undefined,
   };
 }
 
