@@ -224,7 +224,15 @@ function renderSortControl(book, sortKey) {
   '</span>';
 }
 
-function firstListingImage(listings) {
+function highestPricedListingImage(listings) {
+  var priced = listings.filter(function (l) { return l.image && l.price !== null && l.price !== undefined; });
+  if (priced.length) {
+    return priced.reduce(function (best, l) {
+      return Number(l.price) > Number(best.price) ? l : best;
+    }).image;
+  }
+  // No priced listing has an image (e.g. all prices are TBD) — fall back to
+  // any listing with an image rather than showing nothing.
   for (var i = 0; i < listings.length; i++) {
     if (listings[i].image) return listings[i].image;
   }
@@ -237,7 +245,7 @@ function renderBookCard(book, state) {
   var pillText = listings.length ? (listings.length + (listings.length === 1 ? ' listing' : ' listings')) : (book.searchPending ? 'Search queued' : 'Watching');
   var sortKey = SORT_PREFS[book.id] || DEFAULT_SORT;
   var sortControl = listings.length > 1 ? renderSortControl(book, sortKey) : '';
-  var listingImage = firstListingImage(listings);
+  var listingImage = highestPricedListingImage(listings);
   var coverSrc = book.coverImage || listingImage;
   var coverAlt = book.coverImage
     ? esc(book.title) + ' #' + esc(book.issue) + ' cover'
