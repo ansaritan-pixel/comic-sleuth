@@ -187,7 +187,7 @@ function sortListings(listings, sortKey) {
 
 function renderListingRows(listings, sortKey) {
   if (!listings.length) {
-    return '<tr><td colspan="5" class="empty-row">No listings found yet — this book is being watched across every automated source.</td></tr>';
+    return '<tr><td colspan="6" class="empty-row">No listings found yet — this book is being watched across every automated source.</td></tr>';
   }
   listings = sortListings(listings, sortKey || DEFAULT_SORT);
   return listings.map(function (l) {
@@ -211,6 +211,7 @@ function renderListingRows(listings, sortKey) {
     var row = '<tr' + (l.sold ? ' class="sold-row"' : '') + '>' +
       '<td data-label="Source"><span class="src-chip"><span class="src-status-dot ' + srcStatus + '"></span>' + esc(l.source) + '</span></td>' +
       '<td data-label="Price">' + priceLabel + fmtPrice(l.price, l.currency) + badges + '</td>' +
+      '<td class="offers" data-label="Offers">' + (l.acceptsOffers ? '<span class="offers-pill">Accepting Offers</span>' : '—') + '</td>' +
       '<td class="grade" data-label="Grade">' + esc(l.grade || '—') + '</td>' +
       '<td class="note" data-label="Detail">' + detailTxt + '</td>' +
       '<td data-label=""><a class="view-link" href="' + esc(l.url) + '" target="_blank" rel="noopener">View listing →</a>' + soldBadge + '</td>' +
@@ -299,7 +300,7 @@ function renderBookCard(book, state) {
         '<button class="remove-btn" data-remove="' + esc(book.id) + '" title="Stop watching this book">Remove</button>' +
       '</div>' +
     '</div>' +
-    (listings.length ? '<table class="listings"><thead><tr><th>Source</th><th>Price</th><th>Grade</th><th>Detail</th><th></th></tr></thead><tbody>' + renderListingRows(listings, sortKey) + '</tbody></table>'
+    (listings.length ? '<table class="listings"><thead><tr><th>Source</th><th>Price</th><th>Offers</th><th>Grade</th><th>Detail</th><th></th></tr></thead><tbody>' + renderListingRows(listings, sortKey) + '</tbody></table>'
                       : '<table class="listings"><tbody>' + renderListingRows(listings, sortKey) + '</tbody></table>') +
     '</div>';
 }

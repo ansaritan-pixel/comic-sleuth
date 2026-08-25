@@ -49,6 +49,7 @@ function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
   const price = priceSource && priceSource.value != null ? Number(priceSource.value) : null;
   const currency = (priceSource && priceSource.currency) || null;
   const bidCount = isAuction && item.bidCount != null ? Number(item.bidCount) : null;
+  const acceptsOffers = Array.isArray(item.buyingOptions) && item.buyingOptions.includes('BEST_OFFER');
   const image = httpUrlOrNull(
     (item.image && item.image.imageUrl) ||
       (item.thumbnailImages && item.thumbnailImages[0] && item.thumbnailImages[0].imageUrl)
@@ -67,6 +68,7 @@ function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
     currency,
     isAuction,
     bidCount,
+    acceptsOffers,
     gradingCompany,
     grade: gradingCompany ? `${gradingCompany} ${grade}` : grade,
     image,
