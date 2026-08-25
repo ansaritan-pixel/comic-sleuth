@@ -27,7 +27,12 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
   if (!forceFresh) {
     const cached = searchCache.get(key);
     if (cached) {
-      requestLog.addEntry({ domain: 'eBay', comic: comicLabel, result: 'hit', cacheHit: true });
+      requestLog.addEntry({
+        domain: 'eBay',
+        comic: comicLabel,
+        result: cached.length ? 'found' : 'empty',
+        cacheHit: true,
+      });
       return cached;
     }
   }
@@ -39,7 +44,7 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
     requestLog.addEntry({
       domain: 'eBay',
       comic: comicLabel,
-      result: listings.length ? 'hit' : 'miss',
+      result: listings.length ? 'found' : 'empty',
       cacheHit: false,
     });
     return listings;
