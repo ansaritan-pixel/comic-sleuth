@@ -319,7 +319,18 @@ function renderApp(state) {
 
   html += '<section class="hero-search">' +
     '<div class="hero-search-kicker-row">' +
-      '<svg class="hero-search-glass" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><line x1="15.5" y1="15.5" x2="21" y2="21"></line></svg>' +
+      '<svg class="hero-search-icon" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<ellipse cx="7" cy="17.2" rx="3" ry="4.3" transform="rotate(-18 7 17.2)"></ellipse>' +
+        '<circle cx="5.1" cy="12" r="1"></circle>' +
+        '<circle cx="6.9" cy="10.9" r="1"></circle>' +
+        '<circle cx="8.7" cy="11.3" r="0.85"></circle>' +
+        '<circle cx="10.1" cy="12.4" r="0.7"></circle>' +
+        '<ellipse cx="16.6" cy="7.6" rx="3" ry="4.3" transform="rotate(18 16.6 7.6)"></ellipse>' +
+        '<circle cx="14.7" cy="2.9" r="1"></circle>' +
+        '<circle cx="16.5" cy="1.8" r="1"></circle>' +
+        '<circle cx="18.3" cy="2.2" r="0.85"></circle>' +
+        '<circle cx="19.7" cy="3.3" r="0.7"></circle>' +
+      '</svg>' +
       '<span class="hero-search-kicker">The trail starts here</span>' +
     '</div>' +
     '<form id="quick-search-form" class="hero-search-form">' +
