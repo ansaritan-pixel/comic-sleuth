@@ -75,6 +75,14 @@ is the only place that reads these variables.
   URL, and marketplace. eBay's Browse API only returns active/asking-price
   listings, so nothing here is ever labeled as sold or used as fair-market
   value.
+- **Variation listings are excluded**: eBay can fold a listing with a
+  condition/grade/edition dropdown into a single search result, with
+  `price` set to whichever variation eBay picked — not reliably the price
+  a buyer actually sees by default on the listing page (confirmed against
+  a real listing, where search returned $437.49 for one variation while
+  the page defaulted to a $6.55 one). Any item with `itemGroupHref` or
+  `itemGroupType` set (`isVariationListing()` in `normalize.js`) is
+  dropped from results entirely rather than risk showing a wrong price.
 - **Caching**: search results are cached in memory for 60 seconds per
   title+issue+year (shared across all users), so listings stay effectively
   live on every real visit while still guarding against a burst of

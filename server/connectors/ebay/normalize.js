@@ -12,6 +12,20 @@ function httpUrlOrNull(u) {
   return typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null;
 }
 
+// eBay's Browse API can fold a whole "variation group" listing — a
+// dropdown of different conditions/grades/editions each with its own
+// price — into a single item_summary result, with `price` set to
+// whichever variation eBay picked as the representative one. That's not
+// reliably the price a buyer actually sees by default on the listing page
+// (confirmed against a real listing: search returned $437.49 for one
+// variation while the page defaulted to a $6.55 one). There's no way to
+// resolve the "right" price from the search summary alone without an
+// extra per-item API call, so these are excluded entirely rather than
+// risk showing a wrong asking price.
+function isVariationListing(item) {
+  return !!(item.itemGroupHref || item.itemGroupType);
+}
+
 function parseGrading(title) {
   if (!title) return { gradingCompany: null, grade: null };
   const upper = title.toUpperCase();
@@ -53,4 +67,4 @@ function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
   };
 }
 
-module.exports = { normalizeEbayItem, parseGrading };
+module.exports = { normalizeEbayItem, parseGrading, isVariationListing };
