@@ -4,6 +4,7 @@ const { TTLCache } = require('../cache');
 const { mapWithConcurrency } = require('../concurrency');
 const requestLog = require('../requestLog');
 const state = require('../state');
+const store = require('../store');
 
 const router = express.Router();
 
@@ -73,7 +74,7 @@ async function getListingsForBook(book, { forceFresh = false } = {}) {
 }
 
 async function buildState({ refreshBookId = null } = {}) {
-  const wantList = state.readWantList();
+  const wantList = await store.readWantList(state.defaultWantList);
 
   const listingsByBook = await mapWithConcurrency(wantList, SEARCH_CONCURRENCY, (book) =>
     getListingsForBook(book, { forceFresh: book.id === refreshBookId })
@@ -108,7 +109,7 @@ router.post('/wantlist', async (req, res, next) => {
       return res.status(400).json({ error: 'title and issue are required.' });
     }
 
-    const wantList = state.readWantList();
+    const wantList = await store.readWantList(state.defaultWantList);
     if (wantList.length >= state.BOOK_CAP) {
       return res.status(400).json({
         error: `Watch list is at its ${state.BOOK_CAP}-book cap — remove one before adding another.`,
@@ -125,7 +126,7 @@ router.post('/wantlist', async (req, res, next) => {
     };
 
     wantList.push(newBook);
-    state.writeWantList(wantList);
+    await store.writeWantList(wantList);
 
     res.status(201).json(await buildState({ refreshBookId: newBook.id }));
   } catch (err) {
@@ -135,9 +136,9 @@ router.post('/wantlist', async (req, res, next) => {
 
 router.delete('/wantlist/:id', async (req, res, next) => {
   try {
-    const wantList = state.readWantList();
-    const next_ = wantList.filter((b) => b.id !== req.params.id);
-    state.writeWantList(next_);
+    const wantList = await store.readWantList(state.defaultWantList);
+    const remaining = wantList.filter((b) => b.id !== req.params.id);
+    await store.writeWantList(remaining);
     res.json(await buildState());
   } catch (err) {
     next(err);

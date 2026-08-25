@@ -1,12 +1,10 @@
-// Want-list persistence (a small JSON file) plus the in-memory "sources"
-// health panel shown in the UI. Only the eBay entry reflects a real,
-// currently-implemented connector; the rest are labeled accordingly rather
-// than showing invented activity for connectors that don't exist yet.
+// Domain defaults (the seeded want list, the book cap) plus the in-memory
+// "sources" health panel shown in the UI. Want-list persistence itself
+// lives in server/store/ — this module doesn't touch disk or a database.
+// Only the eBay entry reflects a real, currently-implemented connector;
+// the rest are labeled accordingly rather than showing invented activity
+// for connectors that don't exist yet.
 
-const fs = require('fs');
-const path = require('path');
-
-const DATA_FILE = path.join(__dirname, 'data', 'wantlist.json');
 const BOOK_CAP = 100;
 
 const NOT_YET_IMPLEMENTED_SOURCES = [
@@ -26,23 +24,6 @@ function defaultWantList() {
     { id: 'hulk181', title: 'Incredible Hulk', issue: '181', publisher: 'Marvel', year: '1974', addedDate: today(), searchPending: true },
     { id: 'batman1', title: 'Batman', issue: '1', publisher: 'DC', year: '1940', addedDate: today(), searchPending: true },
   ];
-}
-
-function readWantList() {
-  try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(raw);
-  } catch (err) {
-    if (err.code !== 'ENOENT') throw err;
-    const seeded = defaultWantList();
-    writeWantList(seeded);
-    return seeded;
-  }
-}
-
-function writeWantList(wantList) {
-  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-  fs.writeFileSync(DATA_FILE, JSON.stringify(wantList, null, 2));
 }
 
 // --- eBay source health, tracked in memory for the life of the process ---
@@ -114,8 +95,7 @@ function buildSources(ebayEnv) {
 
 module.exports = {
   BOOK_CAP,
-  readWantList,
-  writeWantList,
+  defaultWantList,
   recordEbaySuccess,
   recordEbayFailure,
   buildSources,

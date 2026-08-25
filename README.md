@@ -88,9 +88,23 @@ is the only place that reads these variables.
 
 ## Cover art
 
-Book cards show a photo from the book's highest-priced eBay listing (falling
-back to any listing with a photo, then a placeholder if there are no
-listings yet). There's no separate cover-art source in this build.
+Book cards show whichever listing photo recurs most often across a book's
+matching eBay listings (sellers often reuse the same stock cover photo),
+falling back to the highest-priced listing's photo when every photo is
+unique, then a placeholder if there are no listings yet. There's no
+separate cover-art source in this build.
+
+## Want-list storage
+
+- **Local development**: the want list is stored in `server/data/wantlist.json`
+  on disk. No setup needed — this is the default.
+- **Hosted**: most hosting platforms' free/cheap tiers use ephemeral
+  filesystems, so that file would silently reset to the seeded books on
+  every redeploy or restart. Set `UPSTASH_REDIS_REST_URL` and
+  `UPSTASH_REDIS_REST_TOKEN` (a free database at [upstash.com](https://upstash.com))
+  in your host's environment variables and the want list switches to Upstash
+  automatically (`server/store/index.js` picks the backend — nothing else in
+  the app knows or cares which one is active). Leave them unset locally.
 
 ## Not yet implemented
 
