@@ -289,7 +289,9 @@ function renderApp(state) {
   CURRENT_STATE = state;
   var totalListings = state.listings.length;
   var html = '';
-  html += '<div class="brand-bar"><img class="brand-logo" src="' + LOGO_DATA_URI + '" alt="The Comic Sleuth logo" width="88" height="88"><span class="brand-name">The Comic Sleuth</span></div>';
+  html += '<div class="brand-bar"><img class="brand-logo" src="' + LOGO_DATA_URI + '" alt="The Comic Sleuth logo" width="72" height="72">' +
+    '<div class="brand-name-wrap"><span class="brand-name">The Comic Sleuth</span><span class="brand-eyebrow">Collector’s Registry</span></div></div>';
+  html += '<div class="gold-rule"></div>';
   html += '<header class="masthead">';
   html += '<h1 class="title">Your want list, watched across eBay and other comic markets</h1>';
   html += '<div class="stat-row">';
