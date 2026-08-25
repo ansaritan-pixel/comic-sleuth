@@ -69,12 +69,21 @@ is the only place that reads these variables.
   query built from the title, issue number, and — when a real 4-digit year
   was entered — the publication year, to reduce mismatches against
   reprints or other volumes that happen to share a title and issue number.
+  The request explicitly asks for both buying options
+  (`filter=buyingOptions:{FIXED_PRICE|AUCTION}`) rather than relying on
+  eBay's default, so live auctions come back alongside Buy It Now listings.
 - **Normalization**: results are mapped to Comic Sleuth's listing shape
   (`server/connectors/ebay/normalize.js`) — comic title, issue, listing
   title, grading company, grade, price, currency, image, item ID, listing
   URL, and marketplace. eBay's Browse API only returns active/asking-price
   listings, so nothing here is ever labeled as sold or used as fair-market
   value.
+- **Auctions show the current bid, not a fixed price**: for a listing
+  with `buyingOptions` including `AUCTION`, the price shown is
+  `currentBidPrice` (the live current bid), not `price` — using `price`
+  there would show a stale or unrelated number instead of what a bidder
+  is actually agreeing to. The UI labels this "Current bid" and adds an
+  "AUCTION · N bids" tag so it's never mistaken for a fixed asking price.
 - **Variation listings are excluded**: eBay can fold a listing with a
   condition/grade/edition dropdown into a single search result, with
   `price` set to whichever variation eBay picked — not reliably the price

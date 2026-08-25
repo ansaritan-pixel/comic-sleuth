@@ -19,6 +19,9 @@ function buildSearchUrl(query, limit) {
   const url = new URL(`${config.apiBase}/buy/browse/v1/item_summary/search`);
   url.searchParams.set('q', query);
   url.searchParams.set('limit', String(limit));
+  // Explicit rather than relying on eBay's default: both live auctions and
+  // fixed-price (Buy It Now) listings should come back, not just one.
+  url.searchParams.set('filter', 'buyingOptions:{FIXED_PRICE|AUCTION}');
   return url.toString();
 }
 

@@ -39,8 +39,16 @@ function parseGrading(title) {
 
 function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
   const { gradingCompany, grade } = parseGrading(item.title);
-  const price = item.price && item.price.value != null ? Number(item.price.value) : null;
-  const currency = (item.price && item.price.currency) || null;
+  // Auction-format listings carry the live current-bid amount in
+  // currentBidPrice, not price — using `price` for those would show a
+  // stale/unrelated number instead of what a bidder would actually be
+  // agreeing to right now. Falls back to `price` if currentBidPrice is
+  // ever absent on an auction item.
+  const isAuction = Array.isArray(item.buyingOptions) && item.buyingOptions.includes('AUCTION');
+  const priceSource = (isAuction && item.currentBidPrice) || item.price;
+  const price = priceSource && priceSource.value != null ? Number(priceSource.value) : null;
+  const currency = (priceSource && priceSource.currency) || null;
+  const bidCount = isAuction && item.bidCount != null ? Number(item.bidCount) : null;
   const image = httpUrlOrNull(
     (item.image && item.image.imageUrl) ||
       (item.thumbnailImages && item.thumbnailImages[0] && item.thumbnailImages[0].imageUrl)
@@ -57,6 +65,8 @@ function normalizeEbayItem(item, { wantId, comicTitle, issue, foundDate }) {
     url: httpUrlOrNull(item.itemWebUrl || item.itemHref),
     price,
     currency,
+    isAuction,
+    bidCount,
     gradingCompany,
     grade: gradingCompany ? `${gradingCompany} ${grade}` : grade,
     image,

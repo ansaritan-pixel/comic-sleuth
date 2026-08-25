@@ -205,15 +205,24 @@ function renderListingRows(listings, sortKey) {
   return listings.map(function (l) {
     var badges = '';
     if (l.facsimile) badges += '<span class="facsimile">FACSIMILE</span>';
+    if (l.isAuction) {
+      badges += '<span class="auction-badge">AUCTION' +
+        (l.bidCount != null ? ' · ' + l.bidCount + (l.bidCount === 1 ? ' bid' : ' bids') : '') +
+        '</span>';
+    }
     var soldBadge = l.sold ? '<span class="soldpill">SOLD' + (l.soldDate ? ' · ' + fmtDate(l.soldDate) : '') + '</span>' : '';
     var srcStatus = sourceStatus(CURRENT_STATE, l.source).status || 'green';
     var detailTxt = esc(l.note || ('Found ' + fmtDate(l.foundDate)));
     if (srcStatus === 'red') {
       detailTxt += ' <span class="restricted-note">· Source access limited — not refreshed automatically</span>';
     }
+    // Auction current-bid amounts change as bidding continues — labeling
+    // it plainly as a fixed price would be misleading about what a bidder
+    // is actually agreeing to right now.
+    var priceLabel = l.isAuction ? '<span class="bid-label">Current bid</span>' : '';
     var row = '<tr' + (l.sold ? ' class="sold-row"' : '') + '>' +
       '<td data-label="Source"><span class="src-chip"><span class="src-status-dot ' + srcStatus + '"></span>' + esc(l.source) + '</span></td>' +
-      '<td data-label="Price">' + fmtPrice(l.price, l.currency) + badges + '</td>' +
+      '<td data-label="Price">' + priceLabel + fmtPrice(l.price, l.currency) + badges + '</td>' +
       '<td class="grade" data-label="Grade">' + esc(l.grade || '—') + '</td>' +
       '<td class="note" data-label="Detail">' + detailTxt + '</td>' +
       '<td data-label=""><a class="view-link" href="' + esc(l.url) + '" target="_blank" rel="noopener">View listing →</a>' + soldBadge + '</td>' +
