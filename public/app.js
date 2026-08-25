@@ -368,6 +368,24 @@ function scrollToBook(bookId) {
   var card = document.querySelector('.book-card[data-book-id="' + bookId + '"]');
   if (!card) return;
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showBackToTop();
+}
+
+function showBackToTop() {
+  var btn = document.getElementById('back-to-top');
+  if (btn) btn.classList.add('show');
+}
+
+function setupBackToTop() {
+  var btn = document.getElementById('back-to-top');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    btn.classList.remove('show');
+  });
+  window.addEventListener('scroll', function () {
+    if (window.scrollY < 200) btn.classList.remove('show');
+  }, { passive: true });
 }
 
 function showToast(msg) {
@@ -543,6 +561,8 @@ function wireEvents(state) {
 }
 
 var CURRENT_STATE = null;
+
+setupBackToTop();
 
 apiGet('/api/state')
   .then(function (state) { renderApp(state); })

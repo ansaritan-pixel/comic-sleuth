@@ -544,6 +544,33 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 13.5px;
+    background: var(--accent);
+    color: #17120a;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(24px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 45;
+    box-shadow: var(--shadow);
+  }
+  .back-to-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .back-to-top:hover { background: var(--accent-strong); }
+
+  @media (max-width: 640px) {
+    .back-to-top { bottom: 18px; right: 16px; padding: 11px 16px; font-size: 13px; }
+  }
+
   footer {
     margin-top: 48px;
     padding-top: 20px;
@@ -744,6 +771,7 @@
 <body>
 <div class="wrap" id="app"><p style="color:var(--ink-faint)">Loading…</p></div>
 <div class="toast" id="toast"></div>
+<button type="button" class="back-to-top" id="back-to-top">↑ Back to top</button>
 <script src="app.js"></script>
 </body>
 </html>
