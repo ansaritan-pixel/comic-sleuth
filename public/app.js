@@ -317,27 +317,33 @@ function renderApp(state) {
     html += '</div></details></section>';
   }
 
-  html += '<section class="quicksearch">' +
-    '<form id="quick-search-form">' +
-      '<label for="quick-search-input">Give me a Clue?</label>' +
-      '<div class="quicksearch-row">' +
+  html += '<section class="hero-search">' +
+    '<div class="hero-search-kicker-row">' +
+      '<svg class="hero-search-glass" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><line x1="15.5" y1="15.5" x2="21" y2="21"></line></svg>' +
+      '<span class="hero-search-kicker">The trail starts here</span>' +
+    '</div>' +
+    '<form id="quick-search-form" class="hero-search-form">' +
+      '<label for="quick-search-input" class="hero-search-label">Give me a Clue?</label>' +
+      '<div class="hero-search-row">' +
         '<input id="quick-search-input" type="text" placeholder="e.g. Amazing Spider-Man #1 1963" autocomplete="off">' +
         '<button type="submit" id="quick-search-btn">Let’s Sleuth!</button>' +
       '</div>' +
     '</form>' +
   '</section>';
 
-  html += '<section class="addbook">';
-  html += '<h2>Add a comic to watch</h2>';
-  html += '<form id="add-form">' +
-    '<div class="field"><label for="f-title">Title</label><input id="f-title" name="title" placeholder="e.g. Tales of Suspense" required></div>' +
-    '<div class="field"><label for="f-issue">Issue #</label><input id="f-issue" name="issue" placeholder="39" required></div>' +
-    '<div class="field"><label for="f-pub">Publisher</label><input id="f-pub" name="publisher" placeholder="Marvel"></div>' +
-    '<div class="field"><label for="f-year">Year</label><input id="f-year" name="year" placeholder="1963"></div>' +
-    '<button type="submit" class="add-submit" id="add-submit-btn">Add to Watch List</button>' +
-  '</form>';
-  html += '<p class="addbook-hint">New books are searched on eBay immediately after you add them. The list is capped at ' + (state.bookCap || 30) + ' books to keep requests light.</p>';
-  html += '</section>';
+  html += '<details class="manual-add">' +
+    '<summary>Prefer to enter the title, issue, publisher and year separately? Add manually</summary>' +
+    '<div class="addbook">' +
+      '<form id="add-form">' +
+        '<div class="field"><label for="f-title">Title</label><input id="f-title" name="title" placeholder="e.g. Tales of Suspense" required></div>' +
+        '<div class="field"><label for="f-issue">Issue #</label><input id="f-issue" name="issue" placeholder="39" required></div>' +
+        '<div class="field"><label for="f-pub">Publisher</label><input id="f-pub" name="publisher" placeholder="Marvel"></div>' +
+        '<div class="field"><label for="f-year">Year</label><input id="f-year" name="year" placeholder="1963"></div>' +
+        '<button type="submit" class="add-submit" id="add-submit-btn">Add to Watch List</button>' +
+      '</form>' +
+      '<p class="addbook-hint">New books are searched on eBay immediately after you add them. The list is capped at ' + (state.bookCap || 30) + ' books to keep requests light.</p>' +
+    '</div>' +
+  '</details>';
 
   html += '<section class="list">';
   html += '<div class="list-head"><h2>Watching (' + state.wantList.length + ')</h2>' +
