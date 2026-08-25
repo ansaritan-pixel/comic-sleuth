@@ -120,6 +120,7 @@ function renderRequestLog(state) {
 }
 
 var SORT_PREFS = {};
+var COLLAPSED_LISTINGS = {};
 var DEFAULT_SORT = 'price-desc';
 var CURRENT_TITLE_FILTER = '';
 
@@ -262,7 +263,15 @@ function renderBookCard(book, state) {
   var coverHtml = coverSrc
     ? '<img class="book-cover" src="' + esc(coverSrc) + '" alt="' + esc(book.title) + ' #' + esc(book.issue) + ' — photo from an eBay listing" loading="lazy">'
     : '<div class="book-cover book-cover-placeholder" role="img" aria-label="Cover not yet available"></div>';
-  return '<div class="book-card" data-book-id="' + esc(book.id) + '" data-title="' + esc(book.title) + '">' +
+  // Newly added/never-touched books always start expanded — only a book
+  // the user has explicitly collapsed stays collapsed across re-renders.
+  var isCollapsed = listings.length > 0 && !!COLLAPSED_LISTINGS[book.id];
+  var toggleBtn = listings.length > 0
+    ? '<button type="button" class="toggle-listings-btn" data-toggle-listings="' + esc(book.id) + '">' +
+        (isCollapsed ? 'Show listings (' + listings.length + ')' : 'Hide listings') +
+      '</button>'
+    : '';
+  return '<div class="book-card' + (isCollapsed ? ' listings-collapsed' : '') + '" data-book-id="' + esc(book.id) + '" data-title="' + esc(book.title) + '">' +
     '<div class="book-head">' +
       '<div class="book-head-left">' +
         coverHtml +
@@ -274,6 +283,7 @@ function renderBookCard(book, state) {
       '</div>' +
       '<div class="book-head-right">' +
         '<span class="count-pill ' + pillClass + '">' + pillText + '</span>' +
+        toggleBtn +
         sortControl +
         '<button class="remove-btn" data-remove="' + esc(book.id) + '" title="Stop watching this book">Remove</button>' +
       '</div>' +
@@ -644,6 +654,20 @@ function wireEvents(state) {
       if (!tbody) return;
       var listings = state.listings.filter(function (l) { return l.wantId === bookId; });
       tbody.innerHTML = renderListingRows(listings, sortKey);
+    });
+  }
+
+  var toggleListingsBtns = document.querySelectorAll('[data-toggle-listings]');
+  for (var t = 0; t < toggleListingsBtns.length; t++) {
+    toggleListingsBtns[t].addEventListener('click', function (e) {
+      var bookId = e.currentTarget.getAttribute('data-toggle-listings');
+      var collapsed = !COLLAPSED_LISTINGS[bookId];
+      COLLAPSED_LISTINGS[bookId] = collapsed;
+      var card = document.querySelector('.book-card[data-book-id="' + bookId + '"]');
+      if (!card) return;
+      card.classList.toggle('listings-collapsed', collapsed);
+      var count = state.listings.filter(function (l) { return l.wantId === bookId; }).length;
+      e.currentTarget.textContent = collapsed ? 'Show listings (' + count + ')' : 'Hide listings';
     });
   }
 

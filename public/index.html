@@ -352,6 +352,21 @@
   .remove-btn:hover { color: var(--warn); }
   .book-head-right { display: flex; align-items: center; gap: 8px; }
 
+  .toggle-listings-btn {
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--ink-muted);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .toggle-listings-btn:hover { color: var(--ink); border-color: var(--accent); }
+  .book-card.listings-collapsed table.listings { display: none; }
+
   .sort-wrap { position: relative; display: inline-flex; align-items: center; }
   .sort-select {
     font: inherit;
