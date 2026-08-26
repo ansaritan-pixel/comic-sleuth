@@ -353,10 +353,10 @@ function renderApp(state) {
         '<circle cx="18.3" cy="2.2" r="0.85"></circle>' +
         '<circle cx="19.7" cy="3.3" r="0.7"></circle>' +
       '</svg>' +
-      '<span class="hero-search-kicker">Start your comic hunt</span>' +
+      '<span class="hero-search-kicker">Sleuthing ain’t easy!</span>' +
     '</div>' +
     '<form id="quick-search-form" class="hero-search-form">' +
-      '<label for="quick-search-input" class="hero-search-label">Give me a Clue?</label>' +
+      '<label for="quick-search-input" class="hero-search-label">We find the comics you’re hunting.</label>' +
       '<div class="hero-search-row">' +
         '<input id="quick-search-input" type="text" placeholder="e.g. Amazing Spider-Man #1 1963" autocomplete="off">' +
         '<button type="submit" id="quick-search-btn">Let’s Sleuth!</button>' +
