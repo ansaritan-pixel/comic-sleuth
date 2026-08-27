@@ -331,6 +331,9 @@ function renderApp(state) {
     html += '</section>';
 
     html += '<section class="admin-panel-wrap"><details class="admin-panel"><summary>Source health &amp; request log (debug)</summary><div class="admin-panel-body">';
+    if (state.uniqueVisitors != null) {
+      html += '<p class="source-summary">' + state.uniqueVisitors + ' unique visitor' + (state.uniqueVisitors === 1 ? '' : 's') + ' since launch.</p>';
+    }
     html += '<p class="source-summary">' + renderRequestTotal(state) + ' request' + (renderRequestTotal(state) === 1 ? '' : 's') + ' made today across ' + state.sources.length + ' source' + (state.sources.length === 1 ? '' : 's') + '.</p>';
     html += '<div class="health-grid">' + renderSourceHealth(state) + '</div>';
     html += '<h3>Recent requests</h3>';

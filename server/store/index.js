@@ -38,4 +38,16 @@ function writeWantList(token, wantList) {
   return activeStore().write(token, wantList);
 }
 
-module.exports = { readWantList, writeWantList, backendName };
+// Owner-only visibility (see routes/wantlist.js) into how many distinct
+// tester tokens have ever hit the site — a much more meaningful "unique
+// visitors" signal than IP address, since every browser already gets its
+// own token via testerMiddleware regardless of shared/rotating IPs.
+function recordVisit(token) {
+  return activeStore().recordVisit(token);
+}
+
+function countVisitors() {
+  return activeStore().countVisitors();
+}
+
+module.exports = { readWantList, writeWantList, backendName, recordVisit, countVisitors };

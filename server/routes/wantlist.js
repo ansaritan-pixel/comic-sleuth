@@ -114,11 +114,16 @@ async function buildState({ testerId, refreshBookId = null }) {
     // The debug request log is operational detail — only sent to the
     // owner's own link, not to beta testers or anonymous visitors.
     requestLog: isOwner ? requestLog.getRecent(25) : undefined,
+    // Same restriction — how many people have checked the site out at all
+    // is the owner's business, not something a beta tester's own link or
+    // the bare site should ever reveal.
+    uniqueVisitors: isOwner ? await store.countVisitors() : undefined,
   };
 }
 
 router.get('/state', async (req, res, next) => {
   try {
+    await store.recordVisit(req.testerId);
     res.json(await buildState({ testerId: req.testerId }));
   } catch (err) {
     next(err);

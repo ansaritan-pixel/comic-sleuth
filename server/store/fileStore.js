@@ -9,6 +9,7 @@ const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const LEGACY_FILE = path.join(DATA_DIR, 'wantlist.json');
+const VISITORS_FILE = path.join(DATA_DIR, 'visitors.json');
 
 function fileFor(token) {
   const safe = String(token).replace(/[^A-Za-z0-9_-]/g, '');
@@ -41,4 +42,18 @@ async function write(token, wantList) {
   fs.writeFileSync(fileFor(token), JSON.stringify(wantList, null, 2));
 }
 
-module.exports = { isConfigured: () => true, read, readLegacy, write };
+// Local-dev equivalent of upstashStore's Redis set of every distinct
+// tester token ever seen — owner-only "unique visitors" count.
+async function recordVisit(token) {
+  const existing = readJson(VISITORS_FILE) || [];
+  if (existing.includes(token)) return;
+  existing.push(token);
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(VISITORS_FILE, JSON.stringify(existing, null, 2));
+}
+
+async function countVisitors() {
+  return (readJson(VISITORS_FILE) || []).length;
+}
+
+module.exports = { isConfigured: () => true, read, readLegacy, write, recordVisit, countVisitors };

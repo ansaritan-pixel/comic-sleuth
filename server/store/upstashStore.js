@@ -64,4 +64,17 @@ async function write(token, wantList) {
   await command(['SET', keyFor(token), JSON.stringify(wantList)]);
 }
 
-module.exports = { isConfigured, read, readLegacy, write };
+// A Redis set of every distinct tester token ever seen — owner-only
+// "unique visitors" count, not tied to want-list data at all.
+const VISITORS_KEY = 'comic-sleuth:visitors';
+
+async function recordVisit(token) {
+  await command(['SADD', VISITORS_KEY, token]);
+}
+
+async function countVisitors() {
+  const count = await command(['SCARD', VISITORS_KEY]);
+  return Number(count) || 0;
+}
+
+module.exports = { isConfigured, read, readLegacy, write, recordVisit, countVisitors };
