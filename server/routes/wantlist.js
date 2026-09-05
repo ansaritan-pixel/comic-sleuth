@@ -22,6 +22,14 @@ const MAX_YEAR_LENGTH = 20;
 // that no real person adding/removing books by hand would ever notice it.
 const writeLimiter = createRateLimiter({ windowMs: 5 * 60 * 1000, max: 30 });
 
+// GET /state now has a side effect (recording a visit), and a cookie-less
+// request mints a brand-new random tester token every single call — so
+// without a limit here, a script hammering this endpoint with no cookie
+// could inflate the visitor count and grow that storage unbounded for
+// free. Generous enough that no real browser session, even one refreshing
+// or navigating quickly, would ever come close.
+const stateLimiter = createRateLimiter({ windowMs: 5 * 60 * 1000, max: 120 });
+
 // Short on purpose: the goal is "fresh enough to actually go buy," not a
 // bandwidth-saving cache. 60s is a nominal safety margin against a burst of
 // duplicate calls with zero benefit (an accidental double-load, a stray
@@ -121,7 +129,7 @@ async function buildState({ testerId, refreshBookId = null }) {
   };
 }
 
-router.get('/state', async (req, res, next) => {
+router.get('/state', stateLimiter, async (req, res, next) => {
   try {
     await store.recordVisit(req.testerId);
     res.json(await buildState({ testerId: req.testerId }));
