@@ -41,8 +41,11 @@ const searchCache = new TTLCache(SEARCH_CACHE_TTL_MS);
 
 // Caps how many eBay searches run at once when refreshing the whole want
 // list, so a large list doesn't fire a burst of simultaneous calls that
-// trips eBay's per-second rate limiting.
-const SEARCH_CONCURRENCY = 8;
+// trips eBay's per-second rate limiting. Each book search now fires 2
+// eBay HTTP calls at once (a best-match pass and a price-sorted pass,
+// merged for better recall — see connectors/ebay/index.js), so this is
+// halved from 8 to keep the actual concurrent-call ceiling the same.
+const SEARCH_CONCURRENCY = 4;
 
 function cacheKey(book) {
   return [book.title, book.issue, book.year]

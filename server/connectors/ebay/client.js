@@ -14,7 +14,7 @@ class EbayApiError extends Error {
   }
 }
 
-function buildSearchUrl(query, limit) {
+function buildSearchUrl(query, limit, sort) {
   const config = loadConfig();
   const url = new URL(`${config.apiBase}/buy/browse/v1/item_summary/search`);
   url.searchParams.set('q', query);
@@ -22,12 +22,18 @@ function buildSearchUrl(query, limit) {
   // Explicit rather than relying on eBay's default: both live auctions and
   // fixed-price (Buy It Now) listings should come back, not just one.
   url.searchParams.set('filter', 'buyingOptions:{FIXED_PRICE|AUCTION}');
+  // Omitted = eBay's default "best match" relevance ranking. Passing one
+  // (e.g. "price") gets a differently-ordered slice of the same
+  // underlying inventory — see searchForBook's two-pass merge, which
+  // exists because "best match" alone can bury genuine matches for a
+  // broad query behind unrelated listings sharing the same keywords.
+  if (sort) url.searchParams.set('sort', sort);
   return url.toString();
 }
 
-async function searchItemSummaries(query, { limit = 20 } = {}) {
+async function searchItemSummaries(query, { limit = 20, sort = null } = {}) {
   const config = loadConfig();
-  const url = buildSearchUrl(query, limit);
+  const url = buildSearchUrl(query, limit, sort);
 
   const doFetch = async (forceRefresh) => {
     const token = await getAccessToken({ forceRefresh });

@@ -20,19 +20,37 @@ function buildQuery(book) {
   return parts.filter(Boolean).join(' ');
 }
 
-// eBay's own "best match" ranking returns a different top pool of raw
-// results depending on the exact query text — a query without a year
-// (e.g. tracking "X-Men #5" and "X-Men #5 1963" as separate books) can
-// get crowded out of a small top-N by unrelated volumes/relaunches
-// sharing the same title and issue number. A larger pool before our own
-// title/issue/year filtering runs gives genuine matches a better chance
-// of surviving even when the query itself is less specific.
-const SEARCH_RESULT_LIMIT = 50;
+// eBay's own "best match" ranking is a black box and returns a different
+// top pool of raw results depending on the exact query text — a query
+// without a year (e.g. tracking "X-Men #5" and "X-Men #5 1963" as
+// separate books) can get crowded out of a single ranked list by
+// unrelated volumes/relaunches sharing the same title and issue number,
+// no matter how high the limit goes. eBay's actual per-request max.
+const SEARCH_RESULT_LIMIT = 200;
+
+// A second pass sorted by price gets a meaningfully different slice of
+// the same underlying inventory than "best match" alone — genuine
+// matches that one ranking buries often surface in the other. Merged
+// and de-duplicated by itemId below before any filtering runs.
+const SECONDARY_SORT = 'price';
 
 async function searchForBook(book) {
   const foundDate = new Date().toISOString().slice(0, 10);
-  const items = await searchItemSummaries(buildQuery(book), { limit: SEARCH_RESULT_LIMIT });
-  const plausible = items.filter((item) => isPlausibleMatch(item, book) && !isVariationListing(item));
+  const query = buildQuery(book);
+  const [bestMatch, byPrice] = await Promise.all([
+    searchItemSummaries(query, { limit: SEARCH_RESULT_LIMIT }),
+    searchItemSummaries(query, { limit: SEARCH_RESULT_LIMIT, sort: SECONDARY_SORT }),
+  ]);
+
+  const seen = new Set();
+  const merged = [];
+  for (const item of bestMatch.concat(byPrice)) {
+    if (!item.itemId || seen.has(item.itemId)) continue;
+    seen.add(item.itemId);
+    merged.push(item);
+  }
+
+  const plausible = merged.filter((item) => isPlausibleMatch(item, book) && !isVariationListing(item));
   return plausible.map((item) =>
     normalizeEbayItem(item, {
       wantId: book.id,

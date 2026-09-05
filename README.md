@@ -72,6 +72,17 @@ is the only place that reads these variables.
   The request explicitly asks for both buying options
   (`filter=buyingOptions:{FIXED_PRICE|AUCTION}`) rather than relying on
   eBay's default, so live auctions come back alongside Buy It Now listings.
+- **Two search passes, merged**: eBay's "best match" ranking is a black
+  box and can bury genuine matches for a broad query (e.g. a book with no
+  year entered) behind unrelated listings sharing the same title and
+  issue number — a franchise with many relaunches/volumes makes this
+  worse. `searchForBook()` (`server/connectors/ebay/index.js`) runs the
+  same query twice at eBay's per-request max (`limit=200`) — once with
+  eBay's default ranking, once sorted by price — and merges the two
+  result sets, de-duplicated by item ID, before title/issue/year
+  filtering runs. This doubles the eBay calls per book search, so
+  `SEARCH_CONCURRENCY` (`server/routes/wantlist.js`) is halved to keep
+  the actual concurrent-call ceiling the same.
 - **Normalization**: results are mapped to Comic Sleuth's listing shape
   (`server/connectors/ebay/normalize.js`) — comic title, issue, listing
   title, grading company, grade, price, currency, image, item ID, listing
