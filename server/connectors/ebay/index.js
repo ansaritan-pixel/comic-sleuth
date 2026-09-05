@@ -20,9 +20,18 @@ function buildQuery(book) {
   return parts.filter(Boolean).join(' ');
 }
 
+// eBay's own "best match" ranking returns a different top pool of raw
+// results depending on the exact query text — a query without a year
+// (e.g. tracking "X-Men #5" and "X-Men #5 1963" as separate books) can
+// get crowded out of a small top-N by unrelated volumes/relaunches
+// sharing the same title and issue number. A larger pool before our own
+// title/issue/year filtering runs gives genuine matches a better chance
+// of surviving even when the query itself is less specific.
+const SEARCH_RESULT_LIMIT = 50;
+
 async function searchForBook(book) {
   const foundDate = new Date().toISOString().slice(0, 10);
-  const items = await searchItemSummaries(buildQuery(book), { limit: 20 });
+  const items = await searchItemSummaries(buildQuery(book), { limit: SEARCH_RESULT_LIMIT });
   const plausible = items.filter((item) => isPlausibleMatch(item, book) && !isVariationListing(item));
   return plausible.map((item) =>
     normalizeEbayItem(item, {
